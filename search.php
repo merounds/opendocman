@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -42,65 +45,76 @@ $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : 
 */
 /// includes
 $start_time = time();
-draw_header(msg('search'), $last_message);
+//draw_header(msg('search'), $last_message);
+$head = header_init(msg('search'), $last_message);
+$view->setData([
+    'breadCrumb'  => $head['breadCrumb'],
+    'site_title'  => $head['site_title'],
+    'base_url'    => $head['base_url'],
+    'page_title'  => $head['page_title'],
+    'lastmessage' => $head['lastmessage']
+]);
+if ($head['userName']) {
+    $view->addData([
+        'userName'    => $head['userName'],
+        'can_add'     => $head['can_add'],
+        'can_checkin' => $head['can_checkin']
+    ]);
+}
+if ($head['isadmin']) {
+    $view->addData([
+        'isadmin' => $head['isadmin']
+    ]);
+}
+$view->setView('header');
+echo $view->__invoke();
 
-echo '<body bgcolor="white">';
+
 if (!isset($_GET['submit'])) {
-    ?>
-    <p>
-
-    <table border="0" cellspacing="5" cellpadding="5">
+?>
         <form action="search.php" method="get">
-
-            <tr>
-                <td valign="top"><b><?php echo msg('label_search_term');
-    ?></b></td>
-                <td><input type="Text" name="keyword" size="50"></td>
-            </tr>
-            <tr>
-                <td valign="top"><b><?php echo msg('search');
-    ?></b></td>
-                <td><select name="where">
-                        <option value="author"><?php echo msg('author'). "(".msg('label_last_name')." ".msg('label_first_name').")";
-    ?></option>
-                        <option value="department"><?php echo msg('department');
-    ?></option>
-                        <option value="category"><?php echo msg('category');
-    ?></option>
-                        <option value="descriptions"><?php echo msg('label_description');
-    ?></option>
-                        <option value="filenames"><?php echo msg('label_filename');
-    ?></option>
-                        <option value="comments"><?php echo msg('label_comment');
-    ?></option>
-                        <option value="file_id"><?php echo msg('file');
-    ?> #</option>
-                            <?php
-                            udf_functions_search_options();
-    ?>
-                        <option value="all" selected><?php echo msg('searchpage_all_meta');
-    ?></option>
-                    </select></td>
-            </tr>
-
-            <tr>
-                <td><?php echo msg('label_exact_phrase');
-    ?>: <input type="checkbox" name="exact_phrase"></td>
-                <td><?php echo msg('label_case_sensitive');
-    ?><input type="checkbox" name="case_sensitivity"></td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="buttons"><button class="positive" type="Submit" name="submit" value="Search"><?php echo msg('search');
-    ?></button></div>
-                </td>
-            </tr>
+        <table id="searchtable" border="0" cellspacing="5" cellpadding="5">
+            <tbody>
+                <tr>
+                    <td style="vertical-align: top;"><label for="term"><b><?= e::h(msg('label_search_term')); ?></b></label></td>
+                    <td><input id="term" type="text" name="keyword" size="50"></td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;"><label for="where"><b><?= e::h(msg('search')); ?></b></label></td>
+                    <td><select id="where" name="where">
+                            <option value="author"><?= e::h(msg('author'))."(".e::h(msg('label_last_name')).", ".e::h(msg('label_first_name')).")"; ?></option>
+                            <option value="department"><?= e::h(msg('department')); ?></option>
+                            <option value="category"><?= e::h(msg('category')); ?></option>
+                            <option value="descriptions"><?= e::h(msg('label_description')); ?></option>
+                            <option value="filenames"><?= e::h(msg('label_filename')); ?></option>
+                            <option value="comments"><?= e::h(msg('label_comment')); ?></option>
+                            <option value="file_id"><?= e::h(msg('file')); ?> #</option>
+                            <?php udf_functions_search_options(); ?>
+                            <option value="all" selected><?= e::h(msg('searchpage_all_meta')); ?></option>
+                        </select></td>
+                </tr>
+                <tr>
+                    <td><label for="phrase"><?= e::h(msg('label_exact_phrase')); ?>: </label>
+                        <input id="phrase" type="checkbox" name="exact_phrase"></td>
+                    <td><label for="case"><?= e::h(msg('label_case_sensitive')); ?>: </label>
+                        <input id="case" type="checkbox" name="case_sensitivity"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="submit" value="Search"><?= e::h(msg('search')); ?></button>
+                        </div>
+                    </td>
+                </tr>
+            <tbody>
+        </table>
         </form>
-    </table>
 
     <?php
     //echo '<br><b>Load Time: ' . time() - $start_time;
-    draw_footer();
+
+    //draw_footer();
+
 } else {
     function search($where, $keyword, $exact_phrase, $case_sensitivity, $search_array)
     {
@@ -204,7 +218,7 @@ if (!isset($_GET['submit'])) {
         $final_query = $query_pre . $query;
 
         $stmt = $pdo->prepare($final_query);
-        
+
         if (!empty($use_uid)) {
             $stmt->bindParam(':uid', $_SESSION['uid']);
             $stmt->bindParam(':keyword', $keyword);
@@ -229,7 +243,8 @@ if (!isset($_GET['submit'])) {
             return array_values(array_unique(array_merge($id_array, search($where, substr($remain, 1), $exact_phrase, $case_sensitivity, $search_array))));
         }
         return array_values(array_intersect($id_array, $search_array));
-    }
+    } // close function search()
+
     $current_user = new User($_SESSION['uid'], $pdo);
     $user_perms = new User_Perms($_SESSION['uid'], $pdo);
     $current_user_permission = new UserPermission($_SESSION['uid'], $pdo);
@@ -247,9 +262,29 @@ if (!isset($_GET['submit'])) {
     // Call the plugin API
     callPluginMethod('onSearch');
 
-    list_files($search_result, $current_user_permission, $GLOBALS['CONFIG']['dataDir'], false, false);
+    $files = list_files($search_result, $current_user_permission, $GLOBALS['CONFIG']['dataDir'], false, false);
+
+    if ($files != -1) {
+        // Call the plugin API
+        callPluginMethod('onBeforeListFiles', $files['file_list_arr']);
+
+        $view->setData([
+            'showCheckBox'  => $files['showCheckBox'],
+            'limit_reached' => $files['limit_reached'],
+            'file_list_arr' => $files['file_list_arr']
+        ]);
+        $view->setView('out');
+        echo $view->__invoke();
+
+        callPluginMethod('onAfterListFiles');
+    }
     echo '<br />';
-    draw_footer();
+
+    //draw_footer();
+
     //echo '<br> <b> Load Page Time: ' . (getmicrotime() - $start_time) . ' </b>';
     //echo '<br> <b> Load Permission Time: ' . ($e_getFTime - $s_getFTime) . ' </b>';
 }
+
+$view->setView('footer');
+echo $view->__invoke();

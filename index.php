@@ -1,4 +1,5 @@
 <?php
+
 /*
 index.php - main login form
 Copyright (C) 2002-2013 Stephen Lawrence Jr.
@@ -27,28 +28,31 @@ session_start();
 */
 
 if (!file_exists('config.php')) {
-    if (
-        !extension_loaded('pdo')
-        || !extension_loaded('pdo_mysql')
-    ) {
+    if (!extension_loaded('pdo') ||
+        !extension_loaded('pdo_mysql') )
+    {
         echo "<p>PHP pdo Extensions not loaded. <a href='./'>try again</a>.</p>";
         exit;
     }
-    // A config file doesn't exist
+    // A config file does not exist
     ?>
     <html>
     <head>
         <link rel="stylesheet" href="templates/common/css/install.css" type="text/css"/>
     </head>
-    <body>Looks like this is a new installation because we did not find a config.php file or we cannot locate the
-    database. We need to create a config.php file now: <p><a href="install/setup-config.php" class="button">Create a
-            Configuration File</a></p></body>
+    <body>
+        <p>Looks like this is a new installation because we did not find a config.php file or we cannot locate the database. We need to create a config.php file now:</p>
+        <p><a href="install/setup-config.php" class="button">Create a Configuration File</a></p>
+    </body>
     </html>
     <?php
     exit;
 }
 
 require_once('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_REQUEST['last_message'])) {
     $_REQUEST['last_message'] = '';
@@ -68,7 +72,7 @@ if (isset($_SESSION['uid'])) {
 
 if (isset($_POST['login'])) {
     if (!is_dir($GLOBALS['CONFIG']['dataDir']) || !is_writable($GLOBALS['CONFIG']['dataDir'])) {
-        echo "<font color=red>" . msg('message_datadir_problem') . "</font>";
+        echo '<font color="red">' . msg('message_datadir_problem') . '</font>';
     }
 
     $frmuser = $_POST['frmuser'];
@@ -108,7 +112,7 @@ if (isset($_POST['login'])) {
             username = :frmuser
           AND
             password = password(:frmpass)
-            ";
+        ";
 
         $stmt = $pdo->prepare($query);
         $stmt->execute(array(
@@ -148,9 +152,19 @@ if (isset($_POST['login'])) {
 } elseif (!isset($_POST['login']) && $GLOBALS['CONFIG']['authen'] == 'mysql') {
     $redirection = (isset($_REQUEST['redirection']) ? $_REQUEST['redirection'] : '');
 
-    $GLOBALS['smarty']->assign('redirection', htmlentities($redirection, ENT_QUOTES));
-    display_smarty_template('login.tpl');
+    //$GLOBALS['smarty']->assign('redirection', htmlentities($redirection, ENT_QUOTES));
+    //display_smarty_template('login.tpl');
+
+    $view->setData([
+        'redirection' => htmlentities($redirection, ENT_QUOTES),
+        'base_url'    => $GLOBALS['CONFIG']['base_url']
+    ]);
+    $view->setView('login');
+    echo $view->__invoke();
 } else {
     echo 'Check your config';
 }
-draw_footer();
+
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();

@@ -24,6 +24,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -41,27 +44,85 @@ if (!$user_obj->isReviewer()) {
 $comments = isset($_REQUEST['comments']) ? stripslashes($_REQUEST['comments']) : '';
 
 if (!isset($_REQUEST['submit'])) {
-    draw_header(msg('message_documents_waiting'), $last_message);
-    $userpermission = new UserPermission($_SESSION['uid'], $pdo);
-  
+    //draw_header(msg('message_documents_waiting'), $last_message);
+    $head = header_init(msg('message_documents_waiting'), $last_message);
+    $view->setData([
+        'breadCrumb'  => $head['breadCrumb'],
+        'site_title'  => $head['site_title'],
+        'base_url'    => $head['base_url'],
+        'page_title'  => $head['page_title'],
+        'lastmessage' => $head['lastmessage']
+    ]);
+    if ($head['userName']) {
+        $view->addData([
+            'userName'    => $head['userName'],
+            'can_add'     => $head['can_add'],
+            'can_checkin' => $head['can_checkin']
+        ]);
+    }
+    if ($head['isadmin']) {
+        $view->addData([
+            'isadmin' => $head['isadmin']
+        ]);
+    }
+    $view->setView('header');
+    echo $view->__invoke();
+
     if ($user_obj->isAdmin()) {
         $id_array = $user_obj->getAllRevieweeIds();
     } else {
         $id_array = $user_obj->getRevieweeIds();
     }
+    $userpermission = new UserPermission($_SESSION['uid'], $pdo);
 
     $list_status = list_files($id_array, $userpermission, $GLOBALS['CONFIG']['dataDir'], true);
+
     if ($list_status != -1) {
-        display_smarty_template('toBePublished.tpl');
+        // Call the plugin API
+        callPluginMethod('onBeforeListFiles', $list_status['file_list_arr']);
+
+        $view->setData([
+            'showCheckBox'  => $list_status['showCheckBox'],
+            'limit_reached' => $list_status['limit_reached'],
+            'file_list_arr' => $list_status['file_list_arr']
+        ]);
+        $view->setView('out');
+        echo $view->__invoke();
+        $view->setView('toBePublished');
+        echo $view->__invoke();
+
+        callPluginMethod('onAfterListFiles');
     }
 } elseif (isset($_REQUEST['submit']) && ($_REQUEST['submit'] =='commentAuthorize' || $_REQUEST['submit'] == 'commentReject')) {
     if (!isset($_REQUEST['checkbox'])) {
         header('Location: toBePublished.php?last_message=' . urlencode(msg('message_you_did_not_enter_value')));
     }
-
-    draw_header(msg('label_comment'), $last_message);
-    
     $checkbox = isset($_REQUEST['checkbox']) ? $_REQUEST['checkbox'] : '';
+
+    //draw_header(msg('label_comment'), $last_message);
+    $head = header_init(msg('label_comment'), $last_message);
+    $view->setData([
+        'breadCrumb'  => $head['breadCrumb'],
+        'site_title'  => $head['site_title'],
+        'base_url'    => $head['base_url'],
+        'page_title'  => $head['page_title'],
+        'lastmessage' => $head['lastmessage']
+    ]);
+    if ($head['userName']) {
+        $view->addData([
+            'userName'    => $head['userName'],
+            'can_add'     => $head['can_add'],
+            'can_checkin' => $head['can_checkin']
+        ]);
+    }
+    if ($head['isadmin']) {
+        $view->addData([
+            'isadmin' => $head['isadmin']
+        ]);
+    }
+    $view->setView('header');
+    echo $view->__invoke();
+
 /*    if($mode == 'reviewer')
     {
         $access_mode = 'enabled';
@@ -92,10 +153,18 @@ if (!isset($_REQUEST['submit'])) {
     $stmt->execute(array());
     $result = $stmt->fetchAll();
 
-    $GLOBALS['smarty']->assign('user_info', $result);
-    $GLOBALS['smarty']->assign('submit_value', $submit_value);
-    $GLOBALS['smarty']->assign('checkbox', $checkbox);
-    display_smarty_template('commentform.tpl');
+    //$GLOBALS['smarty']->assign('user_info', $result);
+    //$GLOBALS['smarty']->assign('submit_value', $submit_value);
+    //$GLOBALS['smarty']->assign('checkbox', $checkbox);
+    //display_smarty_template('commentform.tpl');
+    $view->setData([
+        'checkbox'     => $checkbox,
+        'submit_value' => $submit_value,
+        'user_info'    => $result
+    ]);
+    $view->setView('commentform');
+    echo $view->__invoke();
+
 } elseif (isset($_POST['submit']) && $_POST['submit'] == 'Reject') {
     $to = isset($_POST['to']) ? e::h($_POST['to']) : '';
     $subject = isset($_POST['subject']) ? e::h($_POST['subject']) : '';
@@ -149,7 +218,7 @@ if (!isset($_REQUEST['submit'])) {
                     mail($mail_to, $mail_subject . ' ' . $file_obj->getName(), ($mail_greeting . $file_obj->getName() . ' ' . $mail_body1 . $mail_salute), $mail_headers);
                 }
             }
-            
+
             $file_obj->Publishable(-1);
             $file_obj->setReviewerComments($reviewer_comments);
             AccessLog::addLogEntry($fileid, 'R', $pdo);
@@ -210,7 +279,7 @@ if (!isset($_REQUEST['submit'])) {
             $user_obj = new User($file_obj->getOwner(), $pdo);
             $mail_to = $user_obj->getEmailAddress();
             $dept_id = $file_obj->getDepartment();
-            
+
             // Build email for author notification
             if (isset($_POST['send_to_users'][0]) && in_array('owner', $_POST['send_to_users'])) {
                 // Lets unset this now so the new array will just be user_id's
@@ -230,11 +299,11 @@ if (!isset($_REQUEST['submit'])) {
                     mail($mail_to, $mail_subject . " " . $file_obj->getName(), $mail_body1, $mail_headers);
                 }
             }
-            
+
             $file_obj->Publishable(1);
             $file_obj->setReviewerComments($reviewer_comments);
             AccessLog::addLogEntry($fileid, 'Y', $pdo);
-            
+
             // Build email for general notices
             $mail_subject = (!empty($_REQUEST['subject']) ? stripslashes(e::h($_REQUEST['subject'])) : $file_obj->getName().' ' .msg('email_added_to_repository'));
             $mail_body2=$comments . PHP_EOL . PHP_EOL;
@@ -250,7 +319,7 @@ if (!isset($_REQUEST['submit'])) {
             if (isset($_POST['send_to_all'])) {
                 email_all($mail_subject, $mail_body2, $mail_headers);
             }
-            
+
             if (isset($_POST['send_to_dept'])) {
                 email_dept($dept_id, $mail_subject, $mail_body2, $mail_headers);
             }
@@ -274,4 +343,7 @@ if (!isset($_REQUEST['submit'])) {
     $last_message=urlencode(msg('message_action_cancelled'));
     header('Location: toBePublished.php?last_message=' . urlencode($last_message));
 }
-    draw_footer();
+
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();

@@ -1,12 +1,21 @@
 $(document).ready(function() {
 
+    var noSort = [];
+	$('#filetable thead th').each( function () {
+		if ($(this).hasClass( 'sorting_disabled' )) {
+			noSort.push( { "orderable": false } );
+		} else {
+			noSort.push( null );
+		}
+	});
     $('#filetable').dataTable({
-            "bStateSave": true,
-            "sPaginationType": "full_numbers",
-            "oLanguage": {
-                "sUrl": "includes/language/DataTables/datatables." + langLanguage + ".txt"
-            }
-        });
+		"bStateSave": true,
+		"sPaginationType": "full_numbers",
+		"oLanguage": {
+			"sUrl": "includes/language/DataTables/datatables." + langLanguage + ".txt"
+		},
+        "columns": noSort
+	});
 
     $("#checkall").live('click', function() {
         var checked_status = this.checked;
@@ -63,7 +72,7 @@ $(document).ready(function() {
     }
     // END admin/reviewer toggles
 
-//        
+//
 //        // validate the comment form when it is submitted
 //	if($("#settingsForm").length > 0) {
 //        $("#settingsForm").validate();
@@ -80,9 +89,9 @@ $(document).ready(function() {
 //				email: true
 //			}
 //		}
-//		
+//
 //	});
-//        } 
+//        }
 });
 
 function blink() {

@@ -1,5 +1,7 @@
 <?php
+
 /*
+access_log.php - view the log of all access actions
 Copyright (C) 2012-2013  Stephen Lawrence Jr.
 
 This program is free software; you can redistribute it and/or
@@ -21,6 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
+
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -38,17 +44,39 @@ if (!$user_obj->isAdmin()) {
 
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
-draw_header(msg('accesslogpage_access_log'), $last_message);
+//draw_header(msg('accesslogpage_access_log'), $last_message);
+$head = header_init(msg('accesslogpage_access_log'), $last_message);
+$view->setData([
+    'breadCrumb'  => $head['breadCrumb'],
+    'site_title'  => $head['site_title'],
+    'base_url'    => $head['base_url'],
+    'page_title'  => $head['page_title'],
+    'lastmessage' => $head['lastmessage'],
+]);
+if ($head['userName']) {
+    $view->addData([
+        'userName'    => $head['userName'],
+        'can_add'     => $head['can_add'],
+        'can_checkin' => $head['can_checkin']
+    ]);
+}
+if ($head['isadmin']) {
+    $view->addData([
+        'isadmin' => $head['isadmin']
+    ]);
+}
+$view->setView('header');
+echo $view->__invoke();
 
-$query = "SELECT 
+$query = "SELECT
             a.*,
             d.realname,
             u.username
-          FROM 
+          FROM
             {$GLOBALS['CONFIG']['db_prefix']}access_log a
-          INNER JOIN 
+          INNER JOIN
             {$GLOBALS['CONFIG']['db_prefix']}data AS d ON a.file_id = d.id
-          INNER JOIN 
+          INNER JOIN
             {$GLOBALS['CONFIG']['db_prefix']}user AS u ON a.user_id = u.id
         ";
 $stmt = $pdo->prepare($query);
@@ -91,7 +119,9 @@ $view->setData([
 ]);
 
 $view->setView('access_log');
-$view->setLayout('default');
+//$view->setLayout('default');
 echo $view->__invoke();
 
-draw_footer();
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();

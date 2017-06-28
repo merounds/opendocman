@@ -1,28 +1,32 @@
 <?php
 use Aura\Html\Escaper as e;
+
 /*
-  details.php - display file information  check for session
-  Copyright (C) 2002-2007 Stephen Lawrence Jr., Khoa Nguyen, Jon Miner
-  Copyright (C) 2008-2015 Stephen Lawrence Jr.
+details.php - display file information  check for session
+Copyright (C) 2002-2007 Stephen Lawrence Jr., Khoa Nguyen, Jon Miner
+Copyright (C) 2008-2015 Stephen Lawrence Jr.
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
 
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -48,7 +52,29 @@ if (strchr($_GET['id'], '_')) {
     $pageTitle = msg('area_file_details');
 }
 
-draw_header(msg('area_file_details'), $last_message);
+//draw_header(msg('area_file_details'), $last_message);
+$head = header_init(msg('area_file_details'), $last_message);
+$view->setData([
+    'breadCrumb'  => $head['breadCrumb'],
+    'site_title'  => $head['site_title'],
+    'base_url'    => $head['base_url'],
+    'page_title'  => $head['page_title'],
+    'lastmessage' => $head['lastmessage'],
+]);
+if ($head['userName']) {
+    $view->addData([
+        'userName'    => $head['userName'],
+        'can_add'     => $head['can_add'],
+        'can_checkin' => $head['can_checkin']
+    ]);
+}
+if ($head['isadmin']) {
+    $view->addData([
+        'isadmin' => $head['isadmin']
+    ]);
+}
+$view->setView('header');
+echo $view->__invoke();
 
 $request_id = (int) $_GET['id']; //save an original copy of id
 $state = isset($_GET['state']) ? (int) $_GET['state'] : 0;
@@ -205,20 +231,34 @@ $file_detail_array = array(
     'status' => $status
 );
 
+$view->setData([
+    'file_detail' => $file_detail_array
+]);
+
 if ($status > 0) {
-    // status != 0 -> file checked out to another user. status = uid of the check-out person
+    // status != 0 -> file checked out to another user.
+    // status = uid of the check-out person
     // query to find out who...
     $checkout_person_obj = $file_data_obj->getCheckerOBJ();
     $full_name = $checkout_person_obj->getFullName();
 
-    $GLOBALS['smarty']->assign('checkout_person_full_name', $full_name);
-    $GLOBALS['smarty']->assign('checkout_person_email', $checkout_person_obj->getEmailAddress());
+//    $GLOBALS['smarty']->assign('checkout_person_full_name', $full_name);
+//    $GLOBALS['smarty']->assign('checkout_person_email', $checkout_person_obj->getEmailAddress());
+
+    $view->addData([
+        'checkout_person_full_name' => $full_name,
+        'checkout_person_email' => $checkout_person_obj->getEmailAddress()
+    ]);
 }
 
 // Can they Read?
 if ($user_permission_obj->getAuthority($request_id, $file_data_obj) >= $user_permission_obj->READ_RIGHT) {
     $view_link = 'view_file.php?id=' . e::h($full_requestId) . '&state=' . ($state + 1);
-    $GLOBALS['smarty']->assign('view_link', $view_link);
+//    $GLOBALS['smarty']->assign('view_link', $view_link);
+
+    $view->addData([
+        'view_link' => $view_link
+    ]);
 }
 
 // Lets figure out which buttons to show
@@ -229,36 +269,55 @@ if ($status == 0 || ($status == -1 && $file_data_obj->isOwner($_SESSION['uid']))
     if ($user_perms->getAuthority($request_id, $file_data_obj) >= $user_perms->WRITE_RIGHT && !isset($revision_id) && !$file_data_obj->isArchived()) {
         // if so, display link for checkout
         $check_out_link = "check-out.php?id=$request_id" . '&state=' . ($state + 1) . '&access_right=modify';
-        $GLOBALS['smarty']->assign('check_out_link', $check_out_link);
+//        $GLOBALS['smarty']->assign('check_out_link', $check_out_link);
+
+        $view->addData([
+            'check_out_link' => $check_out_link
+        ]);
     }
 
 
     if ($user_permission_obj->getAuthority($request_id, $file_data_obj) >= $user_permission_obj->ADMIN_RIGHT && !@isset($revision_id) && !$file_data_obj->isArchived()) {
         // if user is also the owner of the file AND file is not checked out
-        // additional actions are available 
+        // additional actions are available
         $edit_link = "edit.php?id=$request_id&state=" . ($state + 1);
-        $GLOBALS['smarty']->assign('edit_link', $edit_link);
+//        $GLOBALS['smarty']->assign('edit_link', $edit_link);
+
+        $view->addData([
+            'edit_link' => $edit_link
+        ]);
     }
 }
 
 ////end if ($status == 0)
-// ability to view revision history is always available 
+// ability to view revision history is always available
 // put it outside the block
 $history_link = "history.php?id=$request_id&state=" . ($state + 1);
 $comments_link = 'toBePublished.php?submit=comments&id=' . $request_id;
 $my_delete_link = 'delete.php?mode=tmpdel&id0=' . $request_id;
 
-$GLOBALS['smarty']->assign('history_link', $history_link);
-$GLOBALS['smarty']->assign('comments_link', $comments_link);
-$GLOBALS['smarty']->assign('my_delete_link', $my_delete_link);
+//$GLOBALS['smarty']->assign('history_link', $history_link);
+//$GLOBALS['smarty']->assign('comments_link', $comments_link);
+//$GLOBALS['smarty']->assign('my_delete_link', $my_delete_link);
+
+$view->addData([
+    'history_link' => $history_link,
+    'comments_link' => $comments_link,
+    'my_delete_link' => $my_delete_link
+]);
 
 // Call the plugin API
 callPluginMethod('onDuringDetails', $file_data_obj->id);
 
-$GLOBALS['smarty']->assign('file_detail', $file_detail_array);
-display_smarty_template('details.tpl');
+//$GLOBALS['smarty']->assign('file_detail', $file_detail_array);
+//display_smarty_template('details.tpl');
+
+$view->setView('details');
+echo $view->__invoke();
 
 // Call the plugin API
 callPluginMethod('onAfterDetails', $file_data_obj->id);
 
-draw_footer();
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();

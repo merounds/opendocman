@@ -23,14 +23,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // check session
 session_start();
+
+include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
+
 if (!isset($_SESSION['uid'])) {
     header('Location:error.php?ec=1');
     exit;
 }
-include('odm-load.php');
-require_once("AccessLog_class.php");
 
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
+
+require_once("AccessLog_class.php");
 
 $redirect = 'out.php';
 
@@ -50,7 +56,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
             exit;
         }
     }
-    
+
     for ($i = 0; $i<$_REQUEST['num_checkboxes']; $i++) {
         if (isset($_REQUEST['id' . $i])) {
             $id = $_REQUEST['id' . $i];
@@ -68,13 +74,14 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     // delete from directory
     // clean up and back to main page
     $last_message = msg('message_document_has_been_archived');
-        
+
     // Call the plugin API call for this section
     callPluginMethod('onAfterArchiveFile');
-    
+
     header('Location: out.php?last_message=' . urlencode($last_message));
+
 } elseif (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'view_del_archive') {
-    
+
     //publishable=2 for archive deletion
     $query = "SELECT id FROM {$GLOBALS['CONFIG']['db_prefix']}data WHERE publishable=2";
     $stmt = $pdo->prepare($query);
@@ -89,8 +96,32 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     }
 
     $luserperm_obj = new UserPermission($_SESSION['uid'], $pdo);
-    
-    draw_header(msg('area_deleted_files'), $last_message);
+
+    //draw_header(msg('area_deleted_files'), $last_message);
+    $head = header_init(msg('area_deleted_files'), $last_message);
+    $view->setData([
+        'breadCrumb'  => $head['breadCrumb'],
+        'site_title'  => $head['site_title'],
+        'base_url'    => $head['base_url'],
+        'page_title'  => $head['page_title'],
+        'lastmessage' => $head['lastmessage']
+    ]);
+    if ($head['userName']) {
+        $view->addData([
+            'userName'    => $head['userName'],
+            'can_add'     => $head['can_add'],
+            'can_checkin' => $head['can_checkin']
+        ]);
+    }
+    if ($head['isadmin']) {
+        $view->addData([
+            'isadmin' => $head['isadmin']
+        ]);
+    }
+    $view->setView('header');
+    echo $view->__invoke();
+
+    // this is not referenced anywhere
     $page_url = e::h($_SERVER['PHP_SELF']) . '?mode=' . $_REQUEST['mode'];
 
     $user_obj = new User($_SESSION['uid'], $pdo);
@@ -99,9 +130,28 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     $list_status = list_files($array_id, $userperms, $GLOBALS['CONFIG']['archiveDir'], true);
 
     if ($list_status != -1) {
-        $GLOBALS['smarty']->assign('lmode', '');
-        display_smarty_template('deleteview.tpl');
+        // Call the plugin API
+        callPluginMethod('onBeforeListFiles', $list_status['file_list_arr']);
+
+        $view->setData([
+            'showCheckBox'  => $list_status['showCheckBox'],
+            'limit_reached' => $list_status['limit_reached'],
+            'file_list_arr' => $list_status['file_list_arr']
+        ]);
+        $view->setView('out');
+        echo $view->__invoke();
+
+        //$GLOBALS['smarty']->assign('lmode', '');
+        //display_smarty_template('deleteview.tpl');
+        $view->setData([
+            'lmode' => ''
+        ]);
+        $view->setView('deleteview');
+        echo $view->__invoke();
+
+        callPluginMethod('onAfterListFiles');
     }
+
 } elseif (isset($_POST['submit']) && $_POST['submit']=='Delete file(s)') {
     isset($_REQUEST['checkbox']) ? $_REQUEST['checkbox'] : '';
 
@@ -112,6 +162,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
         }
     }
     header('Location:' . urlencode($redirect) . '?last_message=' . urlencode(msg('undeletepage_file_permanently_deleted')));
+
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Undelete') {
     if (isset($_REQUEST['checkbox'])) {
         foreach ($_REQUEST['checkbox'] as $fileId) {
@@ -123,7 +174,9 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     header('Location:' . urlencode($redirect) . '?last_message=' . urlencode(msg('undeletepage_file_undeleted')));
 }
 
-draw_footer();
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();
 
 /*
  * Permanently Delete A File
@@ -134,7 +187,7 @@ function pmt_delete($id)
     global $pdo;
 
     $userperm_obj = new User_Perms($_SESSION['uid'], $pdo);
-    
+
     if (!$userperm_obj->user_obj->isRoot()) {
         header('Location: error.php?ec=4');
         exit;

@@ -2,7 +2,7 @@
 use Aura\Html\Escaper as e;
 
 /*
-out.php - display a list/ of all available documents that user has permission to view (with file status)
+out.php - display a list of all available documents that user has permission to view (with file status)
 Copyright (C) 2002, 2003, 2004 Stephen Lawrence Jr., Khoa Nguyen
 Copyright (C) 2005-2012 Stephen Lawrence Jr.
 
@@ -29,6 +29,9 @@ session_start();
 // includes
 $GLOBALS['state'] = 1;
 require_once 'odm-load.php';
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -36,7 +39,30 @@ if (!isset($_SESSION['uid'])) {
 
 $last_message = isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '';
 
-draw_header(msg('label_file_listing'), $last_message);
+//draw_header(msg('label_file_listing'), $last_message);
+$head = header_init(msg('label_file_listing'), $last_message);
+$view->setData([
+    'breadCrumb'  => $head['breadCrumb'],
+    'site_title'  => $head['site_title'],
+    'base_url'    => $head['base_url'],
+    'page_title'  => $head['page_title'],
+    'lastmessage' => $head['lastmessage'],
+]);
+if ($head['userName']) {
+    $view->addData([
+        'userName'    => $head['userName'],
+        'can_add'     => $head['can_add'],
+        'can_checkin' => $head['can_checkin']
+    ]);
+}
+if ($head['isadmin']) {
+    $view->addData([
+        'isadmin' => $head['isadmin']
+    ]);
+}
+$view->setView('header');
+echo $view->__invoke();
+
 sort_browser();
 
 $user_obj = new User($_SESSION['uid'], $pdo);
@@ -48,7 +74,7 @@ if ($user_obj->isAdmin()) {
 } else {
     $reviewIdCount = 0;
 }
-    
+
 if ($reviewIdCount > 0) {
     echo '<img src="images/exclamation.gif" /> <a href="toBePublished.php?state=1">'.msg('message_documents_waiting'). '</a>: ' . e::h($reviewIdCount)  . '</a><br />';
 }
@@ -61,7 +87,7 @@ if (isset($rejected_files_obj[0]) && $rejected_files_obj[0] != null) {
 
 $llen = $user_obj->getNumExpiredFiles();
 if ($llen > 0) {
-    echo '<img src="images/exclamation_red.gif"><a href="javascript:window.location=\'search.php?submit=submit&sort_by=id&where=author_locked_files&sort_order=asc&keyword=-1&exact_phrase=on\'">' .msg('message_documents_expired'). ': ' . e::h($llen) . '</a><br />';
+    echo '<img src="images/exclamation_red.gif" /><a href="javascript:window.location=\'search.php?submit=submit&sort_by=id&where=author_locked_files&sort_order=asc&keyword=-1&exact_phrase=on\'">' .msg('message_documents_expired'). ': ' . e::h($llen) . '</a><br />';
 }
 // get a list of documents the user has "view" permission for
 // get current user's information-->department
@@ -74,11 +100,28 @@ $user_perms = new UserPermission($_SESSION['uid'], $pdo);
 $file_id_array = $user_perms->getViewableFileIds(true);
 //$end_P = getmicrotime();
 
+$files = list_files($file_id_array, $user_perms, $GLOBALS['CONFIG']['dataDir'], false);
 
-list_files($file_id_array, $user_perms, $GLOBALS['CONFIG']['dataDir'], false);
+if ($files != -1) {
+    // Call the plugin API
+    callPluginMethod('onBeforeListFiles', $files['file_list_arr']);
 
-draw_footer();
+    $view->setData([
+        'showCheckBox'  => $files['showCheckBox'],
+        'limit_reached' => $files['limit_reached'],
+        'file_list_arr' => $files['file_list_arr']
+    ]);
+    $view->setView('out');
+    echo $view->__invoke();
+
+    callPluginMethod('onAfterListFiles');
+}
+
+//draw_footer();
+$view->setView('footer');
+echo $view->__invoke();
+
 //Fb::log('<br> <b> Load Page Time: ' . (getmicrotime() - $start_time) . ' </b>');
-//echo '<br> <b> Load Permission Time: ' . ($end_P - $start_P) . ' </b>';	
-//echo '<br> <b> Load Sort Time: ' . ($lsort_e - $lsort_b) . ' </b>';	
-//echo '<br> <b> Load Table Time: ' . ($llist_e - $llist_b) . ' </b>';	
+//echo '<br> <b> Load Permission Time: ' . ($end_P - $start_P) . ' </b>';
+//echo '<br> <b> Load Sort Time: ' . ($lsort_e - $lsort_b) . ' </b>';
+//echo '<br> <b> Load Table Time: ' . ($llist_e - $llist_b) . ' </b>';

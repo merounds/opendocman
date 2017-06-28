@@ -29,7 +29,7 @@ if (!defined('Settings_class')) {
     class Settings
     {
         protected $connection;
-        
+
         public function Settings(PDO $pdo)
         {
             $this->connection = $pdo;
@@ -98,11 +98,12 @@ if (!defined('Settings_class')) {
             $stmt->execute();
             $result = $stmt->fetchAll();
 
-            $GLOBALS['smarty']->assign('themes', $this->getThemes());
-            $GLOBALS['smarty']->assign('languages', $this->getLanguages());
-            $GLOBALS['smarty']->assign('useridnums', $this->getUserIdNums());
-            $GLOBALS['smarty']->assign('settings_array', $result);
-            display_smarty_template('settings.tpl');
+            return [
+                'themes'  => $this->getThemes(),
+                'languages' => $this->getLanguages(),
+                'useridnums' => $this->getUserIdNums(),
+                'settings_array' => $result
+            ];
         }
 
         /**

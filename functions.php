@@ -147,6 +147,46 @@ function draw_header($pageTitle, $lastmessage = '')
 
 }
 
+function header_init($pageTitle, $lastmessage = '')
+{
+    global $pdo;
+    $header = array();
+
+    $lastmessage = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : $lastmessage);
+
+    $uid = (isset($_SESSION['uid']) ? $_SESSION['uid'] : '');
+
+    // Is the uid set?
+    if ($uid != null) {
+        $current_user_obj = new User($uid, $pdo);
+        $header['userName'] = $current_user_obj->getName();
+        $header['can_add'] = $current_user_obj->can_add;
+        $header['can_checkin'] = $current_user_obj->can_checkin;
+    }
+
+    // Are they an Admin?
+    if ($uid != null && $current_user_obj->isAdmin()) {
+        $header['isadmin'] = 'yes';
+    }
+
+    if (!isset($_REQUEST['state'])) {
+        $_REQUEST['state'] = 1;
+    }
+
+    // Set up the breadcrumbs
+    $crumb = new crumb();
+    $crumb->addCrumb(e::h($_REQUEST['state']), e::h($pageTitle), e::h($_SERVER['PHP_SELF']) . '?' . e::h($_SERVER['QUERY_STRING']));
+    $breadCrumb = $crumb->printTrail(e::h($_REQUEST['state']));
+
+    $header['breadCrumb'] = $breadCrumb;
+    $header['site_title'] = $GLOBALS['CONFIG']['title'];
+    $header['base_url'] = $GLOBALS['CONFIG']['base_url'];
+    $header['page_title'] = $pageTitle;
+    $header['lastmessage'] = urldecode($lastmessage);
+
+    return $header;
+}
+
 function draw_error($message)
 {
     echo '<div id="last_message">' . e::h(urldecode($message)) . '</div>';
@@ -270,7 +310,7 @@ function list_files($fileid_array, $userperms_obj, $dataDir, $showCheckBox = fal
     global $pdo;
 
     if (sizeof($fileid_array) == 0 || !isset($fileid_array[0])) {
-        echo '<img src="images/exclamation.gif">' . msg('message_no_files_found') . PHP_EOL;
+        echo '        <p><img src="images/exclamation.gif"> ' . msg('message_no_files_found') . '</p>' . PHP_EOL;
         return -1;
     }
 
@@ -329,7 +369,7 @@ function list_files($fileid_array, $userperms_obj, $dataDir, $showCheckBox = fal
         }
 
         //Found the user right, now bold every below it.  For those that matches, make them different.
-        
+
         //For everything above it, blank out
         for ($i = $index_found + 1; $i < sizeof($rights); $i++) {
             $rights[$i][1] = '-';
@@ -357,6 +397,12 @@ function list_files($fileid_array, $userperms_obj, $dataDir, $showCheckBox = fal
     if (count($file_list_arr) >= $GLOBALS['CONFIG']['max_query']) {
         $limit_reached = true;
     }
+
+    return [
+        'showCheckBox'  => $showCheckBox,
+        'limit_reached' => $limit_reached,
+        'file_list_arr' => $file_list_arr
+    ];
 
     $GLOBALS['smarty']->assign('limit_reached', $limit_reached);
     $GLOBALS['smarty']->assign('showCheckBox', $showCheckBox);
@@ -543,7 +589,7 @@ function sort_browser()
         echo '</script>'.PHP_EOL;
 ?>
         <form name = "browser_sort">
-            <table name = "browser" border = "0" cellspacing = "1">
+          <table name = "browser" border = "0" cellspacing = "1">
             <tr>
               <td><?php echo msg('label_browse_by');?></td>
               <td nowrap rowspan="0">
@@ -552,24 +598,24 @@ function sort_browser()
                     <option id="1" value="author"><?php echo msg('author');?> </option>
                     <option id="2" value="department"><?php echo msg('label_department');?></option>
                     <option id="3" value="category"><?php echo msg('label_file_category');?></option>
-            <?php
-            udf_functions_java_options(4);
-        ?>
+                    <?php
+                    udf_functions_java_options(4);
+                    ?>
                 </select>
-            </td>
-            <td>
-                <select name="category_item" onChange="loadOrder(this)">
-                    <option id="0" selected ><?php echo msg('label_empty');?></option>
-                </select>
-            </td>
-            <td>
-                <select name="category_item_order" onChange="load(this)">
-                    <option id="0" selected ><?php echo msg('label_empty');?></option>
-                </select>
-            </td>
-        </tr>
-    </table>
-</form >
+              </td>
+              <td>
+                  <select name="category_item" onChange="loadOrder(this)">
+                      <option id="0" selected ><?php echo msg('label_empty');?></option>
+                  </select>
+              </td>
+              <td>
+                  <select name="category_item_order" onChange="load(this)">
+                      <option id="0" selected ><?php echo msg('label_empty');?></option>
+                  </select>
+              </td>
+            </tr>
+          </table>
+        </form>
     <?php
 
 }

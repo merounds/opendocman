@@ -1,4 +1,5 @@
 <?php
+
 /*
 init.php - bootloader to initialize variables
  * If the config.php file is not found then an error
@@ -37,7 +38,16 @@ $helpers = $factory->newInstance();
 $view_factory = new \Aura\View\ViewFactory;
 $view = $view_factory->newInstance($helpers);
 $view_registry = $view->getViewRegistry();
-$view_registry->set('access_log',  __DIR__ . '/templates/views/access_log.php');
+//$view_registry->set('access_log',  __DIR__ . '/templates/views/access_log.php');
+
+// $GLOBALS['CONFIG']['theme'] doesn't exist at this point
+// have to prependPath() theme path later...
+$view_registry->setPaths(array(
+    //__DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme'],
+    __DIR__ . '/templates/common',
+    __DIR__ . '/templates/default',
+    __DIR__ . '/templates/views'
+));
 
 $layout_registry = $view->getLayoutRegistry();
 $layout_registry->set('default', __DIR__ . '/templates/layouts/default.php');
@@ -54,7 +64,7 @@ try {
     die();
 }
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
- 
+
 $GLOBALS['pdo'] = $pdo;
 
 ob_start();
