@@ -21,7 +21,11 @@
  */
 
 session_start();
+
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -42,17 +46,20 @@ if (!isset($_REQUEST['id']) || $_REQUEST['id'] == '') {
 
 if (strchr($_REQUEST['id'], '_')) {
     header('Location:error.php?ec=20');
+    exit;
 }
 
 $filedata = new FileData($_REQUEST['id'], $pdo);
 
 if ($filedata->isArchived()) {
     header('Location:error.php?ec=21');
+    exit;
 }
 
 // form not yet submitted, display initial form
 if (!isset($_REQUEST['submit'])) {
-    draw_header(msg('area_update_file'), $last_message);
+//    draw_header(msg('area_update_file'), $last_message);
+    view_header(msg('area_update_file'), $last_message);
     checkUserPermission($_REQUEST['id'], $filedata->ADMIN_RIGHT, $filedata);
 
     $current_user_dept = $user_perms_obj->user_obj->getDeptId();
@@ -91,7 +98,7 @@ if (!isset($_REQUEST['submit'])) {
         $result = $table_name_stmt->fetchAll();
 
         $num_rows = $table_name_stmt->rowCount();
-        
+
         $t_name = array();
         $i = 0;
         foreach ($result as $data) {
@@ -102,7 +109,7 @@ if (!isset($_REQUEST['submit'])) {
 
         // For the User dropdown
         $avail_users = $user_perms_obj->user_obj->getAllUsers($pdo);
-        
+
         // We need to set a form value for the current department so that
         // it can be pre-selected on the form
         $avail_departments = Department::getAllDepartments($pdo);
@@ -124,7 +131,7 @@ if (!isset($_REQUEST['submit'])) {
             $avail_dept_perms['rights'] = $filedata->getDeptRights($dept['id']);
             array_push($dept_perms_array, $avail_dept_perms);
         }
-        
+
         //////Populate users perm list/////////////////
         $user_perms_array = array();
         foreach ($avail_users as $user) {
@@ -152,14 +159,43 @@ if (!isset($_REQUEST['submit'])) {
         $GLOBALS['smarty']->assign('description', $description);
         $GLOBALS['smarty']->assign('comment', $comment);
         $GLOBALS['smarty']->assign('db_prefix', $GLOBALS['CONFIG']['db_prefix']);
-       
-        display_smarty_template('edit.tpl');
-        udf_edit_file_form();
+
+//        display_smarty_template('edit.tpl');
+
+        $view->setData([
+            'file_id'                 => $filedata->getId(),
+            'realname'                => $filedata->name,
+            'allDepartments'          => $avail_departments,
+            'current_user_dept'       => $current_user_dept,
+            't_name'                  => $t_name,
+            'is_admin'                => $user_perms_obj->user_obj->isAdmin(),
+            'avail_users'             => $user_perms_array,
+            'avail_depts'             => $dept_perms_array,
+            'cats_array'              => $cats_array,
+            'user_id'                 => $_SESSION['uid'],
+            'pre_selected_owner'      => $owner_id,
+            'pre_selected_category'   => $category,
+            'pre_selected_department' => $department,
+            'udf_edit_form'           => udf_edit_file_form(),
+            'description'             => $description,
+            'comment'                 => $comment,
+            'db_prefix'               => $GLOBALS['CONFIG']['db_prefix']
+        ]);
 
         // Call Plugin API
         callPluginMethod('onBeforeEditFile', $data_id);
 
-        display_smarty_template('_edit_footer.tpl');
+// REMOVED: Change to return string assigned in data array for use in template
+//        udf_edit_file_form();
+
+// ERROR: $users_array rows do not have a 'rights' key referenced in _filePermissions
+// ERROR: $departments_array rows do not have a 'rights' key referenced in _filePermissions
+// ERROR: $departments_array rows do not have a 'selected' key referenced in _filePermissions
+        $view->setView('edit');
+        echo $view->__invoke();
+
+// REMOVED: Only used one, merged into 'edit' template
+//        display_smarty_template('_edit_footer.tpl');
     }//end else
 } else {
     // form submitted, process data
@@ -178,7 +214,7 @@ if (!isset($_REQUEST['submit'])) {
             $perms_error = true;
         }
     }
-     
+
     if (!$perms_error) {
         header("Location:error.php?ec=12");
         exit;
@@ -218,19 +254,19 @@ if (!isset($_REQUEST['submit'])) {
     $del_dept_perms_stmt = $pdo->prepare($del_dept_perms_query);
     $del_dept_perms_stmt->bindParam(':file_id', $fileId);
     $del_dept_perms_stmt->execute();
-    
+
     $result_array = array(); // init;
 
     foreach ($_REQUEST['user_permission'] as $user_id=>$permission) {
         $insert_user_perms_query = "
-            INSERT INTO {$GLOBALS['CONFIG']['db_prefix']}user_perms 
+            INSERT INTO {$GLOBALS['CONFIG']['db_prefix']}user_perms
             (
-                fid, 
-                uid, 
+                fid,
+                uid,
                 rights
             ) VALUES(
-                :file_id, 
-                :user_id, 
+                :file_id,
+                :user_id,
                 :permission
             )";
         //echo $query."<br>";
@@ -274,4 +310,5 @@ if (!isset($_REQUEST['submit'])) {
 
     header('Location: details.php?id=' . $fileId . '&last_message=' . urlencode($message));
 }
-draw_footer();
+//draw_footer();
+view_footer();

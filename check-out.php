@@ -25,25 +25,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
 }
 
 require_once("AccessLog_class.php");
- 
+
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
 if (strchr($_REQUEST['id'], '_')) {
     header('Location:error.php?ec=20');
+    exit;
 }
 if (!isset($_REQUEST['id']) || $_REQUEST['id'] == '') {
     header('Location:error.php?ec=2');
     exit;
 }
-/* if the user has read-only authority on the file, his check out 
-will be the same as the person with admin or modify right except that the DB will not have any recored of him checking out this file.  Therefore, he will not be able to check-in the file on
-the server
+/* if the user has read-only authority on the file, his check out
+   will be the same as the person with admin or modify right except
+   that the DB will not have any recored of him checking out this
+   file.  Therefore, he will not be able to check-in the file on
+   the server
 */
 $file_data_obj = new FileData($_GET['id'], $pdo);
 $file_data_obj->setId($_GET['id']);
@@ -52,28 +58,35 @@ if ($file_data_obj->getError() != null || $file_data_obj->getStatus() > 0  || $f
     exit;
 }
 if (!isset($_GET['submit'])) {
-    draw_header(msg('area_check_out_file'), $last_message);
+//    draw_header(msg('area_check_out_file'), $last_message);
+    view_header(msg('area_check_out_file'), $last_message);
     // form not yet submitted
     // display information on how to initiate download
     checkUserPermission($_REQUEST['id'], $file_data_obj->WRITE_RIGHT, $file_data_obj);
-    ?>
+?>
 
+    <ol style="line-height:28px;">
+      <li><form action="check-out.php" method="get">
+              <input type="hidden" name="id" value="<?= e::h($_GET['id']); ?>">
+              <input type="hidden" name="access_right" value="<?= e::h($_GET['access_right']); ?>">
+              <div class="buttons">
+                  <button class="regular" type="submit" name="submit" value="Click here"><?= msg('area_check_out_file') ?></button>
+                  <p><?= msg('message_click_to_checkout_document') ?>.</p>
+              </div>
+          </form>
+      </li>
+      <li><div class="buttons">
+              <a href="out.php"><?= msg('button_continue') ?></a>
+              <p><?= msg('message_once_the_document_has_completed') ?>.</p>
+          </div>
+      </li>
+    </ol>
 
-<p>
-
-<form action="check-out.php" method="get">
-    <input type="hidden" name="id" value="<?php echo e::h($_GET['id']);
-    ?>">
-    <input type="hidden" name="access_right" value="<?php echo e::h($_GET['access_right']);
-    ?>">
-    <div class="buttons"><button class="regular" type="submit" name="submit" value="Click here"><?php echo msg('area_check_out_file')?></button>&nbsp;<?php echo msg('message_click_to_checkout_document')?></div>
-</form>
-    <?php echo msg('message_once_the_document_has_completed')?>&nbsp;<a href="out.php"><?php echo msg('button_continue')?></a>.
-    <?php
-    draw_footer();
-}
-// form submitted - download
-else {
+<?php
+//    draw_footer();
+    view_footer();
+} else {
+    // form submitted - download
     $id = (int) $_REQUEST['id'];
 
     checkUserPermission($id, $file_data_obj->WRITE_RIGHT, $file_data_obj);
@@ -98,7 +111,7 @@ else {
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         header('Pragma: public');
         readfile($filename);
-        
+
         AccessLog::addLogEntry($id, 'O', $pdo);
         AccessLog::addLogEntry($id, 'D', $pdo);
     } else {

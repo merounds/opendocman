@@ -27,7 +27,6 @@ $view_registry->prependPath(
     __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
 );
 
-
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
 }
@@ -45,28 +44,7 @@ if (!$user_obj->isAdmin()) {
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
 //draw_header(msg('accesslogpage_access_log'), $last_message);
-$head = header_init(msg('accesslogpage_access_log'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage'],
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-$view->setView('header');
-echo $view->__invoke();
+view_header(msg('accesslogpage_access_log'), $last_message);
 
 $query = "SELECT
             a.*,
@@ -123,5 +101,4 @@ $view->setView('access_log');
 echo $view->__invoke();
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

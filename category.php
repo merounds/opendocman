@@ -25,6 +25,9 @@ session_start();
 
 // includes
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -40,33 +43,36 @@ if (!$user_obj->isAdmin()) {
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
 if (isset($_GET['submit']) && $_GET['submit'] == 'add') {
-    draw_header(msg('area_add_new_category'), $last_message);
-    ?>
-    <form id="categoryAddForm" action="category.php" method="GET" enctype="multipart/form-data">
-        <table border="0" cellspacing="5" cellpadding="5">
-            <tr>
-                <td><b><?php echo msg('category')?></b></td>
-                <td colspan="3"><input name="category" type="text" class="required" maxlength="40"></td>
-            <td>
-                <div class="buttons">
-                    <button class="positive" type="Submit" name="submit" value="Add Category"><?php echo msg('button_add_category')?></button>
-                </div>
-            </td>
-            <td>
-                <div class="buttons">
-                    <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                </div>
-             </td>
-            </tr>
+//    draw_header(msg('area_add_new_category'), $last_message);
+    view_header(msg('area_add_new_category'), $last_message);
+?>
+
+        <form id="categoryAddForm" action="category.php" method="GET" enctype="multipart/form-data">
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label for="ca"><?= msg('category')?>: </label></td>
+                    <td><input id="ca" class="required" type="text" name="category" maxlength="40" /></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="submit" value="Add Category"><?= msg('button_add_category') ?></button>
+                            <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?= msg('button_cancel') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
         </table>
-    </form>
-     <script>
+        </form>
+
+  <script>
   $(document).ready(function(){
     $('#categoryAddForm').validate();
   });
   </script>
-    <?php
-    draw_footer();
+
+<?php
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit']=='Add Category') {
     // Make sure they are an admin
     if (!$user_obj->isAdmin()) {
@@ -79,69 +85,76 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'add') {
     $stmt->execute(array(':category' => $_REQUEST['category']));
 
     // back to main page
-    $last_message = urlencode(msg('message_category_successfully_added'));
+    $last_message = msg('message_category_successfully_added');
     header('Location:admin.php?last_message=' . urlencode($last_message));
+    exit;
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'delete') {
     // If demo mode, don't allow them to update the demo account
     if ($GLOBALS['CONFIG']['demo'] == 'True') {
-        draw_header(msg('area_delete_category'), $last_message);
+//        draw_header(msg('area_delete_category'), $last_message);
+        view_header(msg('area_delete_category'), $last_message);
         echo msg('message_sorry_demo_mode');
-        draw_footer();
+//        draw_footer();
+        view_footer();
         exit;
     }
 
-    draw_header(msg('area_delete_category'), $last_message);
+//    draw_header(msg('area_delete_category'), $last_message);
+    view_header(msg('area_delete_category'), $last_message);
 
     $item = (int) $_REQUEST['item'];
 
     // query to show item
-    echo '<table border=0>';
     $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category WHERE id = :item";
     $stmt = $pdo->prepare($query);
     $stmt->execute(array(':item' => $_REQUEST['item']));
-    $result = $stmt->fetch();
+    $cat = $stmt->fetch();
 
-    echo '<tr><td>' .msg('label_id'). ' # :</td><td>' . e::h($result['id']) . '</td></tr>';
-    echo '<tr><td>'.msg('label_name').' :</td><td>' . e::h($result['name']) . '</td></tr>';
-    ?>
-    <form action="category.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="id" value="<?php echo e::h($item);
-    ?>">
-        <tr>
-            <td>
-                <?php echo msg('label_reassign_to');
-    ?>:
-            </td>
-            <td>
-                  <select name="assigned_id">
-                            <?php
-                            $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category WHERE id != :item  ORDER BY name";
+    // query to show re-assignment options
+    $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category WHERE id != :item  ORDER BY name";
     $stmt = $pdo->prepare($query);
     $stmt->execute(array(':item' => $_REQUEST['item']));
     $result = $stmt->fetchAll();
+?>
 
-    foreach ($result as $row) {
-        echo '<option value="' . e::h($row['id']) . '">' . e::h($row['name']) . '</option>';
-    }
-    ?>
-                    </select>
-            </td>
-        </tr>
-        <tr>
-            <td valign="top"><?php echo msg('message_are_you_sure_remove')?></td>
-            <td align="center">
-                <div class="buttons">
-                    <button class="positive" type="submit" name="deletecategory" value="Yes"><?php echo msg('button_yes')?></button>
-                </div>
-                <div class="buttons">
-                    <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                </div>
-            </td>
-    </form>
-</tr>
-</TABLE>
-    <?php
-    draw_footer();
+        <form action="category.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="<?= e::h($item) ?>" />
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label><?= msg('label_id') ?> #: </label></td>
+                    <td><?= e::h($cat['id']) ?></td>
+                </tr>
+                <tr>
+                    <td><label><?= msg('label_name') ?>: </label></td>
+                    <td><?= e::h($cat['name']) ?></td>
+                </tr>
+                <tr>
+                    <td><label for="cd"><?= msg('label_reassign_to') ?>: </label></td>
+                    <td>
+                        <select id="cd" name="assigned_id">
+<?php foreach ($result as $row): ?>
+                            <option value="<?= e::h($row['id']) ?>"><?= e::h($row['name']) ?></option>
+<?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><?= msg('message_are_you_sure_remove') ?></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="submit" name="deletecategory" value="Yes"><?= msg('button_yes') ?></button>
+                            <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?= msg('button_cancel') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
+
+<?php
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['deletecategory'])) {
     // Delete category
     //
@@ -167,75 +180,80 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'add') {
     // back to main page
     $last_message = msg('message_category_successfully_deleted') . ' id:' . $_REQUEST['id'];
     header('Location: admin.php?last_message=' . urlencode($last_message));
+    exit;
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'deletepick') {
+// not used
     $deletepick='';
-    draw_header(msg('area_delete_category'). ' : ' .msg('choose'), $last_message);
-    ?>
-    <table border="0" cellspacing="5" cellpadding="5">
-        <form action="category.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="state" value="<?php echo(e::h($_REQUEST['state']+1));
-    ?>">
-            <tr>
-                <td><b><?php echo msg('category')?></b></td>
-                <td colspan=3><select name="item">
-                            <?php
-                            $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
+//    draw_header(msg('area_delete_category'). ' : ' .msg('choose'), $last_message);
+    view_header(msg('area_delete_category'). ' : ' .msg('choose'), $last_message);
+
+    $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $result = $stmt->fetchAll();
+?>
 
-    foreach ($result as $row) {
-        $str = '<option value="' . e::h($row['id']) . '"';
-        $str .= '>' . e::h($row['name']) . '</option>';
-        echo $str;
-    }
-    $deletepick='';
-    ?>
-                    </select></td>
-
-                <td></td>
-                <td colspan="2" align="center">
-                    <div class="buttons">
-                        <button class="positive" type="submit" name="submit" value="delete"><?php echo msg('button_delete')?></button>
-                        <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                    </div>
-                </td>
-            </tr>
+        <form action="category.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="state" value="<?= (e::h($_REQUEST['state']+1)) ?>" />
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label for="cd"><?= msg('category')?>: </label></td>
+                    <td>
+                        <select id="cd" name="item">
+<?php foreach ($result as $row): ?>
+                            <option value="<?= e::h($row['id']) ?>"><?= e::h($row['name']) ?></option>
+<?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="submit" name="submit" value="delete"><?= msg('button_delete') ?></button>
+                            <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?= msg('button_cancel') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         </form>
-    </table>
-    <?php
-    draw_footer();
+
+<?php
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Show Category') {
+//    draw_header(msg('area_view_category'), $last_message);
+    view_header(msg('area_view_category'), $last_message);
+
     // query to show item
-    draw_header(msg('area_view_category'), $last_message);
     $category_id = (int) $_REQUEST['item'];
 
-    // Select name
+    // Select category name
     $query = "SELECT name FROM {$GLOBALS['CONFIG']['db_prefix']}category WHERE id = :category_id";
     $stmt = $pdo->prepare($query);
     $stmt->execute(array(
         ':category_id' => $category_id
     ));
-    $result = $stmt->fetchAll();
+    $cat = $stmt->fetch();
+?>
 
-    echo('<table name="main" cellspacing="15" border="0">');
-    foreach ($result as $row) {
-        echo '<th>' . msg('label_name') . '</th><th>' . msg('label_id') . '</th>';
-        echo '<tr>';
-        echo '<td>' . e::h($row['name']) . '</td>';
-        echo '<td>' . e::h($category_id) . '</td>';
-        echo '</tr>';
-    }
-    ?>
-<form action="admin.php" method="POST" enctype="multipart/form-data">
-    <tr>
-        <td colspan="4" align="center"><div class="buttons"><button class="regular" type="submit" name="submit" value="Back"><?php echo msg('button_back')?></button></div></td>
-    </tr>
-</form>
-</table>
-<!-- ADD THE LIST OF FILES HERE -->
+        <form action="admin.php" method="POST" enctype="multipart/form-data">
+        <table id="category_table" name="main">
+            <tbody>
+                <tr>
+                    <td><label><?= msg('category') ?> <?= msg('label_name') ?>: </label></td>
+                    <td><?= e::h($cat['name']) ?></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="regular" type="submit" name="submit" value="Back"><?= msg('button_back') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
+
 <?php
-    echo msg('categoryviewpage_list_of_files_title') . '<br />';
+    // add the list of files here
     $query = "SELECT id, realname FROM `{$GLOBALS['CONFIG']['db_prefix']}data` WHERE category = :category_id";
     $stmt = $pdo->prepare($query);
     $stmt->execute(array(
@@ -243,131 +261,133 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'add') {
     ));
     $result = $stmt->fetchAll();
 
-    foreach ($result as $row) {
-        echo '<a href="edit.php?id=' . e::h($row['id']) . '&state=3">ID: ' . e::h($row['id']) . ',' . e::h($row['realname']) . '</a><br />';
+    if ($stmt->rowCount() <= 0) {
+        echo '<p>' . msg('categoryviewpage_list_of_files_none') . '</p>';
+    } else {
+        echo '<p>' . msg('categoryviewpage_list_of_files_title') . '</p>';
+        foreach ($result as $row) {
+            echo 'ID #' . e::h($row['id']) . ': <a href="edit.php?id=' . e::h($row['id']) . '&state=3">' . e::h($row['realname']) . '</a><br />';
+        }
     }
 
-    draw_footer();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'showpick') {
-    draw_header(msg('area_view_category') . ' : ' . msg('choose'), $last_message);
-    ?>
-    <table border="0" cellspacing="5" cellpadding="5">
-        <form action="category.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="state" value="<?php echo(e::h($_REQUEST['state']+1));
-    ?>">
-            <tr>
-                <td><b><?php echo msg('category')?></b></td>
-                <td colspan="3"><select name="item">
-                            <?php
-                            $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
+//    draw_header(msg('area_view_category') . ' : ' . msg('choose'), $last_message);
+    view_header(msg('area_view_category') . ' : ' . msg('choose'), $last_message);
+
+    $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $result = $stmt->fetchAll();
+?>
 
-    foreach ($result as $row) {
-        echo '<option value="' . e::h($row['id']) . '">' . e::h($row['name']) . '</option>';
-    }
-    ?>
-                    </select></td>
-
-                <td></td>
-                <td colspan="3" align="center">
-                    <div class="buttons">
-                        <button class="positive" type="Submit" name="submit" value="Show Category"><?php echo msg('area_view_category')?></button>
-                        <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                    </div>
-                </td>
-            </tr>
+        <form action="category.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="state" value="<?= (e::h($_REQUEST['state']+1)); ?>" />
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label for="cs"><?= msg('category')?>: </label></td>
+                    <td>
+                        <select id="cs" name="item">
+<?php foreach ($result as $row): ?>
+                            <option value="<?= e::h($row['id']) ?>"><?= e::h($row['name']) ?></option>
+<?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="submit" value="Show Category"><?= msg('area_view_category') ?></button>
+                            <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= msg('button_cancel') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         </form>
-    </table>
-</body>
-</html>
-    <?php
-    draw_footer();
-} elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Update') {
-    draw_header(msg('area_update_category'), $last_message);
-    ?>
-<form id="updateCategoryForm" action="category.php" method="POST" enctype="multipart/form-data">
-    <table border="0" cellspacing="5" cellpadding="5">
-        <tr>
+
 <?php
+//    draw_footer();
+    view_footer();
+} elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Update') {
+//    draw_header(msg('area_update_category'), $last_message);
+    view_header(msg('area_update_category'), $last_message);
+
     $item = (int)$_REQUEST['item'];
-    // query to get a list of users
+    // query to get a category
     $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category where id = :item";
     $stmt = $pdo->prepare($query);
     $stmt->execute(array(
         ':item' => $item
     ));
-    $result = $stmt->fetchAll();
+    $cat = $stmt->fetch();
+?>
 
-    foreach ($result as $row) {
-        echo '<tr>';
-        echo '<td colspan="2">' . msg('category') . ': <input type="textbox" name="name" value="' . e::h($row['name']) . '" class="required" maxlength="40"></td>';
-        echo '<input type="hidden" name="id" value="' . e::h($row['id']) . '">';
-    }
-    ?>
+        <form id="updateCategoryForm" action="category.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="<?= e::h($cat['id']) ?>" />
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label for="cu"><?= msg('category') ?>: </label></td>
+                    <td><input id="cu" class="required" type="text" name="name" value="<?= e::h($cat['name']) ?>" maxlength="40" /></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="updatecategory" value="Modify Category"><?= msg('area_update_category') ?></button>
+                            <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= msg('button_cancel') ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
 
-
-            <td align="center">
-
-                <div class="buttons">
-                    <button class="positive" type="Submit" name="updatecategory" value="Modify Category"><?php echo msg('area_update_category')?></button>
-                </div>
-            </td>
-            <td align="center">
-                <div class="buttons">
-                    <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                </div>
-            </td>
-        </tr>
-    </table>
- </form>
- <script>
+  <script>
   $(document).ready(function(){
     $('#updateCategoryForm').validate();
   });
   </script>
-    <?php
-    draw_footer();
+
+<?php
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'updatepick') {
-    draw_header(msg('area_update_category'). ': ' .msg('choose'), $last_message);
-    ?>
-    <form action="category.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="state" value="<?php echo(e::h($_REQUEST['state']+1));
-    ?>">
-        <table border="0">
-            <tr>
-                <td><b><?php echo msg('choose')?> <?php echo msg('category')?>:</b></td>
-                <td colspan="3"><select name="item">
-                            <?php
-                            // query to get a list of users
-                            $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
+//    draw_header(msg('area_update_category'). ': ' .msg('choose'), $last_message);
+    view_header(msg('area_update_category'). ': ' .msg('choose'), $last_message);
+
+    // query to get a list of categories
+    $query = "SELECT id, name FROM {$GLOBALS['CONFIG']['db_prefix']}category ORDER BY name";
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $result = $stmt->fetchAll();
+?>
 
-    foreach ($result as $row) {
-        echo '<option value="' . e::h($row['id']) . '">' . e::h($row['name']) . '</option>';
-    }
-    ?>
-                </td>
+        <form action="category.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="state" value="<?php echo(e::h($_REQUEST['state']+1)); ?>" />
+        <table id="category_table">
+            <tbody>
+                <tr>
+                    <td><label for="cup"><?= msg('choose')?> <?= msg('category')?>: </label></td>
+                    <td>
+                        <select id="cup" name="item">
+<?php foreach ($result as $row): ?>
+                            <option value="<?= e::h($row['id']) ?>"><?= e::h($row['name']) ?></option>
+<?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="submit" name="submit" value="Update"><?= msg('choose')?></button>
+                            <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?= msg('button_cancel')?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
 
-                <td align="center">
-                    <div class="buttons">
-                        <button class="positive" type="submit" name="submit" value="Update"><?php echo msg('choose')?></button>
-                    </div>
-                </td>
-                <td align="center">
-                    <div class="buttons">
-                        <button class="negative cancel" type="submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                    </div>
-                </td>
-            </tr>
-    </form></TD>
-</tr>
-</table>
-    <?php
-    draw_footer();
+<?php
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['updatecategory'])) {
     // Make sure they are an admin
     if (!$user_obj->isAdmin()) {
@@ -386,7 +406,9 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'add') {
     // back to main page
     $last_message = msg('message_category_successfully_updated') .' : ' . $_REQUEST['name'];
     header('Location: admin.php?last_message=' . urlencode($last_message));
+    exit;
 } elseif (isset($_REQUEST['cancel']) && $_REQUEST['cancel'] == 'Cancel') {
     $last_message = msg('message_action_cancelled');
     header('Location: admin.php?last_message=' . urlencode($last_message));
+    exit;
 }

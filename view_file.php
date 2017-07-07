@@ -23,6 +23,9 @@ session_cache_limiter('private');
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -39,7 +42,8 @@ if (strchr($_REQUEST['id'], '_')) {
 }
 
 if (!isset($_GET['submit'])) {
-    draw_header(msg('view') . ' ' . msg('file'), $last_message);
+//    draw_header(msg('view') . ' ' . msg('file'), $last_message);
+    view_header(msg('view') . ' ' . msg('file'), $last_message);
     $file_obj = new FileData($_REQUEST['id'], $pdo);
     $file_name = $file_obj->getName();
     $file_id = $file_obj->getId();
@@ -62,12 +66,21 @@ if (!isset($_GET['submit'])) {
 
     $mimetype = File::mime_by_ext($suffix);
 
-    $GLOBALS['smarty']->assign('mimetype', $mimetype);
-    $GLOBALS['smarty']->assign('file_id', $file_id);
+//    $GLOBALS['smarty']->assign('mimetype', $mimetype);
+//    $GLOBALS['smarty']->assign('file_id', $file_id);
 
     // drw form
-    display_smarty_template('view_file.tpl');
-    draw_footer();
+//    display_smarty_template('view_file.tpl');
+
+    $view->setData([
+        'mimetype' => $mimetype,
+        'file_id' => $file_id
+    ]);
+    $view->setView('view_file');
+    echo $view->__invoke();
+
+//    draw_footer();
+    view_footer();
 } elseif ($_GET['submit'] == 'view') {
     $file_obj = new FileData($_REQUEST['id'], $pdo);
     // Added this check to keep unauthorized users from downloading - Thanks to Chad Bloomquist

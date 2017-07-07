@@ -53,28 +53,7 @@ if (strchr($_GET['id'], '_')) {
 }
 
 //draw_header(msg('area_file_details'), $last_message);
-$head = header_init(msg('area_file_details'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage'],
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-$view->setView('header');
-echo $view->__invoke();
+view_header(msg('area_file_details'), $last_message);
 
 $request_id = (int) $_GET['id']; //save an original copy of id
 $state = isset($_GET['state']) ? (int) $_GET['state'] : 0;
@@ -319,5 +298,4 @@ echo $view->__invoke();
 callPluginMethod('onAfterDetails', $file_data_obj->id);
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

@@ -44,31 +44,9 @@ if (!$user_obj->isRoot() == true) {
     exit;
 }
 
-$head = header_init(msg('label_settings'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage']
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-
 if (isset($_REQUEST['submit']) && $_REQUEST['submit']=='update') {
     //draw_header(msg('label_settings'), $last_message);
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('label_settings'), $last_message);
 
     $adminSettings = $settings->edit();
     $view->setData([
@@ -81,8 +59,7 @@ if (isset($_REQUEST['submit']) && $_REQUEST['submit']=='update') {
     echo $view->__invoke();
 
     //draw_footer();
-    $view->setView('footer');
-    echo $view->__invoke();
+    view_footer();
 
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Save') {
     // Clean up the datadir a bit to make sure it ends with slash
@@ -110,11 +87,7 @@ if (isset($_REQUEST['submit']) && $_REQUEST['submit']=='update') {
     }
 
     //draw_header(msg('label_settings'), $last_message);
-    $view->addData([
-        'lastmessage' => $_POST['last_message']
-    ]);
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('label_settings'), $last_message);
 
     $adminSettings = $settings->edit();
     $view->setData([
@@ -127,13 +100,14 @@ if (isset($_REQUEST['submit']) && $_REQUEST['submit']=='update') {
     echo $view->__invoke();
 
     //draw_footer();
-    $view->setView('footer');
-    echo $view->__invoke();
+    view_footer();
 
     // Clear the tpl templates_c files after update in case they updated theme
     $GLOBALS['smarty']->clear_compiled_tpl();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Cancel') {
     header('Location: admin.php?last_message=' . urlencode(msg('message_action_cancelled')));
+    exit;
 } else {
     header('Location: admin.php?last_message=' . urlencode(msg('message_nothing_to_do')));
+    exit;
 }

@@ -23,6 +23,9 @@ session_start();
 
 // includes
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -40,53 +43,85 @@ if (!$user_obj->isRoot() == true) {
 }
 
 if (isset($_REQUEST['submit']) && $_REQUEST['submit']=='update') {
-    draw_header(msg('label_filetypes'), $last_message);
-    $filetypes->edit();
-    draw_footer();
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $last_message);
+    $result = $filetypes->edit();
+    $view->setData([
+        'filetypes_array' => $result['filetypes_arr']
+    ]);
+    $view->setView('filetypes');
+    echo $view->__invoke();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Save') {
-    draw_header(msg('label_filetypes'), $last_message);
-
     if ($filetypes->save($_POST)) {
         $_POST['last_message'] = $GLOBALS['lang']['message_all_actions_successfull'];
     } else {
         $_POST['last_message'] = $GLOBALS['lang']['message_error_performing_action'];
     }
-    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
+//    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $_POST['last_message']);
     $filetypes->edit();
-    draw_footer();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Cancel') {
     header('Location: admin.php?last_message=' . urlencode(msg('message_action_cancelled')));
+    exit;
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'AddNew') {
-    draw_header(msg('label_filetypes'), $last_message);
-    display_smarty_template('filetype_add.tpl');
-    draw_footer();
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $_POST['last_message']);
+//    display_smarty_template('filetype_add.tpl');
+    $view->setView('filetype_add');
+    echo $view->__invoke();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'AddNewSave') {
     if ($filetypes->add($_POST)) {
         $_POST['last_message'] = $GLOBALS['lang']['message_all_actions_successfull'];
     } else {
         $_POST['last_message'] = $GLOBALS['lang']['message_error_performing_action'];
     }
-    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
-
-    draw_header(msg('label_filetypes'), $last_message);
-
-    $filetypes->edit();
-    draw_footer();
+//    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $_POST['last_message']);
+    $result = $filetypes->edit();
+    $view->setData([
+        'filetypes_array' => $result['filetypes_arr']
+    ]);
+    $view->setView('filetypes');
+    echo $view->__invoke();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'DeleteSelect') {
-    draw_header(msg('label_filetypes'), $last_message);
-
-    $filetypes->deleteSelect();
-    draw_footer();
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $last_message);
+    $result = $filetypes->deleteSelect();
+    $view->setData([
+        'filetypes_array' => $result['filetypes_arr']
+    ]);
+    $view->setView('filetypes_deleteshow');
+    echo $view->__invoke();
+//    draw_footer();
+    view_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Delete') {
     if ($filetypes->delete($_POST)) {
         $_POST['last_message'] = $GLOBALS['lang']['message_all_actions_successfull'];
     } else {
         $_POST['last_message'] = $GLOBALS['lang']['message_error_performing_action'];
     }
-    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
-    draw_header(msg('label_filetypes'), $last_message);
-    $filetypes->edit();
-    draw_footer();
+//    $GLOBALS['smarty']->assign('last_message', $_POST['last_message']);
+//    draw_header(msg('label_filetypes'), $last_message);
+    view_header(msg('label_filetypes'), $_POST['last_message']);
+    $result = $filetypes->edit();
+    $view->setData([
+        'filetypes_array' => $result['filetypes_arr']
+    ]);
+    $view->setView('filetypes');
+    echo $view->__invoke();
+//    draw_footer();
+    view_footer();
 } else {
     header('Location: admin.php?last_message=' . urlencode(msg('message_nothing_to_do')));
+    exit;
 }

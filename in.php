@@ -26,6 +26,9 @@ session_start();
 
 // includes
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -39,7 +42,8 @@ if (!$user_obj->canCheckIn()) {
 
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
-draw_header(msg('button_check_in'), $last_message);
+//draw_header(msg('button_check_in'), $last_message);
+view_header(msg('button_check_in'), $last_message);
 
 // query to get list of documents checked out to this user
 $query = "
@@ -47,7 +51,7 @@ $query = "
     d.id,
     u.last_name,
     u.first_name,
-	d.realname,
+  d.realname,
     d.created,
     d.description,
     d.status
@@ -67,21 +71,23 @@ $result = $stmt->fetchAll();
 
 // how many records?
 $count = $stmt->rowCount();
-if ($count == 0) {
-    echo '<img src="images/exclamation.gif"> ' . msg('message_no_documents_checked_out');
-} else {
-    echo '<table border="0" hspace="0" hgap="0" cellpadding="1" cellspacing="1">';
-    echo '<caption><b>' . msg('message_document_checked_out_to_you'). ' : ' . e::h($count) . '</caption>';
-    echo '<tr bgcolor="#83a9f7">';
-    echo '<td class="listtable"><b>' .msg('button_check_in'). '</b></td>';
-    echo '<td class="listtable"><b>' .msg('label_file_name'). '</b></td>';
-    echo '<td class="listtable"><b>' .msg('label_description'). '</b></td>';
-    echo '<td class="listtable"><b>' .msg('label_created_date'). '</b></td>';
-    echo '<td class="listtable"><b>' .msg('owner'). '</b></td>';
-    echo '<td class="listtable"><b>' .msg('label_size'). '</b></td>';
-    echo '</tr>';
-
-    $row_color = "#FCFCFC";
+if ($count == 0) { ?>
+        <p><img src="images/exclamation.gif" /><?= msg('message_no_documents_checked_out') ?></p>
+<?php } else { ?>
+        <table id="filesout">
+            <caption><?= msg('message_document_checked_out_to_you') ?>: <?= e::h($count) ?></caption>
+            <thead>
+                <tr>
+                    <th><?= msg('button_check_in') ?></td>
+                    <th><?= msg('label_file_name') ?></td>
+                    <th><?= msg('label_description') ?></td>
+                    <th><?= msg('label_created_date') ?></td>
+                    <th><?= msg('owner') ?></td>
+                    <th><?= msg('label_size') ?></td>
+                </tr>
+            </thead>
+            <tbody>
+<?php
     // iterate through resultset
     foreach ($result as $row) {
         $id = $row['id'];
@@ -98,28 +104,26 @@ if ($count == 0) {
         }
         $filename = $GLOBALS['CONFIG']['dataDir'] . $id . '.dat';
         // display list
-        $highlighted_color = '#bdf9b6';
+?>
+                <tr>
+                    <td class="listtable">
+                        <div class="buttons">
+                            <a class="regular" href="check-in.php?id=<?= e::h($id) . '&amp;state=<?= e::h(($_REQUEST['state']+1)) ?>">
+                                <img src="images/import-2.png" width="32" height="32" alt="checkin" /> <?= msg('button_check_in') ?>
+                            </a>
+                        </div>
+                    </td>
+                    <td class="listtable"><?= e::h($realname) ?></td>
+                    <td class="listtable"><?= e::h($description) ?></td>
+                    <td class="listtable"><?= fix_date(e::h($created)) ?></td>
+                    <td class="listtable"><?= e::h($last_name) ?>, <?= e::h($first_name) ?></td>
+                    <td class="listtable"><?= display_filesize(e::h($filename)) ?></td>
+                </tr>
+<?php } // close foreach ?>
+            </tbody>
+        </table>
+<?php
+} // close if count else
 
-        echo '<tr valign="middle" bgcolor="' . $row_color . '" onmouseover="this.style.backgroundColor=\'' . $highlighted_color . '\';" onmouseout="this.style.backgroundColor=\'' . $row_color . '\';">';
-        echo '<td class="listtable"><div class="buttons"><a href="check-in.php?id=' . e::h($id) . '&amp;state=' . e::h(($_REQUEST['state']+1)) . '" class="regular"><img src="images/import-2.png" alt="checkin"/>' .msg('button_check_in'). '</a></div>';
-        echo '</td>';
-        echo '<td class="listtable">' . e::h($realname) . '</td>';
-        echo '<td class="listtable">' . e::h($description) . '</td>';
-        echo '<td class="listtable">' . fix_date(e::h($created)) . '</td> ';
-        echo '<td class="listtable">' . e::h($last_name) . ', ' . e::h($first_name) . '</td> ';
-        echo '<td class="listtable">' . display_filesize(e::h($filename)) . '</td> ';
-        echo '</tr>';
-
-        if ($row_color == "#FCFCFC") {
-            $row_color = "#E3E7F9";
-        } else {
-            $row_color = "#FCFCFC";
-        }
-    }
-
-    // clean up
-
-    echo '</table>';
-}
-
-draw_footer();
+//draw_footer();
+view_footer();

@@ -229,7 +229,6 @@ $lang['label_text'] = 'Text';
 $lang['label_update'] = 'Update';
 $lang['label_user_defined_fields'] = 'User Defined Fields';
 $lang['label_user_defined_field'] = 'User Defined Field';
-$lang['label_users_in_department'] = 'Users in this department';
 $lang['label_user'] = 'User';
 $lang['label_view'] = 'View';
 $lang['label_userid'] = 'User ID';
@@ -282,7 +281,7 @@ $lang['message_for_further_assistance'] = 'for further assistance';
 $lang['message_found_documents'] = 'found document(s)';
 $lang['message_if_you_are_unable_to_view1'] = 'If you are not able to do so for some reason, click ';
 $lang['message_if_you_are_unable_to_view2'] = 'Download';
-$lang['message_if_you_are_unable_to_view3'] = '<br> to begin downloading it to your local workstation for local view.';
+$lang['message_if_you_are_unable_to_view3'] = 'to begin downloading it to your local workstation for local view.';
 $lang['message_initial_import'] = 'Initial Import';
 $lang['message_last_message'] = 'Last Message';
 $lang['message_latest_version'] = 'Latest version';
@@ -297,7 +296,8 @@ $lang['message_non_unique_account'] = 'Non-Unique account';
 $lang['message_non_unique_key'] = 'Non-Unique key in database.';
 $lang['message_nothing_to_do'] = 'Nothing to do';
 $lang['message_not_writable'] = 'Not Writable!';
-$lang['message_once_the_document_has_completed'] = 'Once the document has completed downloading, you may';
+//$lang['message_once_the_document_has_completed'] = 'Once the document has completed downloading, you may';
+$lang['message_once_the_document_has_completed'] = 'Click continue once the document has completed downloading';
 $lang['message_original_version'] = 'Original version';
 $lang['message_please_email'] = 'Please email';
 $lang['message_please_upload_valid_doc'] = 'Please upload a valid document';
@@ -381,6 +381,8 @@ $lang['undeletepage_file_undeleted'] = 'The file has been un-deleted';
 
 // Departments Page
 $lang['departmentpage_department_name_required'] = 'A department name is required';
+$lang['departmentpage_no_users_in_department'] = 'No users in this department';
+$lang['departmentpage_users_in_department'] = 'Users in this department';
 
 // Details Page
 $lang['detailspage_view'] = 'View';
@@ -485,6 +487,7 @@ $lang['accesslogpage_reserved'] = 'Reserved';
 $lang['checkinpage_file_was_checked_in'] = 'A file has been checked in.';
 
 //Category View Page
+$lang['categoryviewpage_list_of_files_none'] = 'No files are assigned to this category.';
 $lang['categoryviewpage_list_of_files_title'] = 'Files assigned to this category:';
 
 //Search Page

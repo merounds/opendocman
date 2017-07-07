@@ -147,6 +147,52 @@ function draw_header($pageTitle, $lastmessage = '')
 
 }
 
+function view_header($pageTitle, $lastmessage = '')
+{
+    global $view;
+    global $pdo;
+
+    $lastmessage = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : $lastmessage);
+
+    if (!isset($_REQUEST['state'])) {
+        $_REQUEST['state'] = 1;
+    }
+
+    // Set up the breadcrumbs
+    $crumb = new crumb();
+    $crumb->addCrumb(e::h($_REQUEST['state']), e::h($pageTitle), e::h($_SERVER['PHP_SELF']) . '?' . e::h($_SERVER['QUERY_STRING']));
+    $breadCrumb = $crumb->printTrail(e::h($_REQUEST['state']));
+
+    $view->setData([
+        'breadCrumb'  => $breadCrumb,
+        'site_title'  => $GLOBALS['CONFIG']['title'],
+        'base_url'    => $GLOBALS['CONFIG']['base_url'],
+        'page_title'  => $pageTitle,
+        'lastmessage' => urldecode($lastmessage)
+    ]);
+
+    $uid = (isset($_SESSION['uid']) ? $_SESSION['uid'] : '');
+    // Is the uid set?
+    if ($uid != null) {
+        $current_user_obj = new User($uid, $pdo);
+        $view->addData([
+            'userName'    => $current_user_obj->getName(),
+            'can_add'     => $current_user_obj->can_add,
+            'can_checkin' => $current_user_obj->can_checkin
+        ]);
+    }
+
+    // Are they an Admin?
+    if ($uid != null && $current_user_obj->isAdmin()) {
+        $view->addData([
+            'isadmin' => 'yes'
+        ]);
+    }
+
+    $view->setView('header');
+    echo $view->__invoke();
+}
+
 function header_init($pageTitle, $lastmessage = '')
 {
     global $pdo;
@@ -195,6 +241,13 @@ function draw_error($message)
 function draw_footer()
 {
     display_smarty_template('footer.tpl');
+}
+
+function view_footer()
+{
+    global $view;
+    $view->setView('footer');
+    echo $view->__invoke();
 }
 
 /**

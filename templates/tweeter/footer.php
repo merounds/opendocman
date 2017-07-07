@@ -22,10 +22,10 @@
                 <img src="<?= e::h($GLOBALS['CONFIG']['base_url']) ?>/images/logo.gif" title="<?= e::h($GLOBALS['CONFIG']['title']) ?>" alt="<?= e::h($GLOBALS['CONFIG']['title']) ?>">
             </a>
             <p>Copyright &copy; 2000-2015 Stephen Lawrence</p>
-            <p><a href="http://www.opendocman.com/" target="_new">OpenDocMan</a> |
-                <a href="http://www.opendocman.com/forum/" target="_new"><?= e::h(msg('footer_support')) ?></a> |
-                <a href="http://opendocman.uservoice.com" target="_new"><?= e::h(msg('footer_feedback')) ?></a> |
-                <a href="https://github.com/opendocman/opendocman/issues" target="_new"><?= e::h(msg('footer_bugs')) ?></a>
+            <p><a href="http://www.opendocman.com/" target="_blank">OpenDocMan</a> |
+                <a href="http://www.opendocman.com/forum/" target="_blank"><?= e::h(msg('footer_support')) ?></a> |
+                <a href="http://opendocman.uservoice.com" target="_blank"><?= e::h(msg('footer_feedback')) ?></a> |
+                <a href="https://github.com/opendocman/opendocman/issues" target="_blank"><?= e::h(msg('footer_bugs')) ?></a>
             </p>
         </footer>
     </div> <!-- /container -->

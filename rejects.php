@@ -40,28 +40,7 @@ $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : 
 
 if (!isset($_POST['submit'])) {
     //draw_header(msg('message_documents_rejected'), $last_message);
-    $head = header_init(msg('message_documents_rejected'), $last_message);
-    $view->setData([
-        'breadCrumb'  => $head['breadCrumb'],
-        'site_title'  => $head['site_title'],
-        'base_url'    => $head['base_url'],
-        'page_title'  => $head['page_title'],
-        'lastmessage' => $head['lastmessage']
-    ]);
-    if ($head['userName']) {
-        $view->addData([
-            'userName'    => $head['userName'],
-            'can_add'     => $head['can_add'],
-            'can_checkin' => $head['can_checkin']
-        ]);
-    }
-    if ($head['isadmin']) {
-        $view->addData([
-            'isadmin' => $head['isadmin']
-        ]);
-    }
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('message_documents_rejected'), $last_message);
 
     $user_obj = new User($_SESSION['uid'], $pdo);
     $user_perms_obj = new UserPermission($_SESSION['uid'], $pdo);
@@ -102,8 +81,7 @@ if (!isset($_POST['submit'])) {
     }
 
     //draw_footer();
-    $view->setView('footer');
-    echo $view->__invoke();
+    view_footer();
 
 } elseif (isset($_POST['submit']) && $_POST['submit'] == 'resubmit') {
     if (!isset($_REQUEST['checkbox'])) {
@@ -119,7 +97,7 @@ if (!isset($_POST['submit'])) {
         }
     }
     header('Location:rejects.php?mode=' . urlencode(@$_REQUEST['mode']) . '&last_message='. urlencode(msg('message_file_authorized')));
-
+    exit;
 } elseif ($_POST['submit'] == 'delete') {
     if (!isset($_REQUEST['checkbox'])) {
         header('Location: rejects.php?last_message=' . urlencode(msg('message_you_did_not_enter_value')));
@@ -139,6 +117,7 @@ if (!isset($_POST['submit'])) {
         $url = substr($url, 0, strlen($url)-1);
     }
     header('Location:'. urlencode($url) .'&num_checkboxes=' . urlencode($loop));
+    exit;
 }
 
 ?>

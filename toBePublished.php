@@ -45,28 +45,7 @@ $comments = isset($_REQUEST['comments']) ? stripslashes($_REQUEST['comments']) :
 
 if (!isset($_REQUEST['submit'])) {
     //draw_header(msg('message_documents_waiting'), $last_message);
-    $head = header_init(msg('message_documents_waiting'), $last_message);
-    $view->setData([
-        'breadCrumb'  => $head['breadCrumb'],
-        'site_title'  => $head['site_title'],
-        'base_url'    => $head['base_url'],
-        'page_title'  => $head['page_title'],
-        'lastmessage' => $head['lastmessage']
-    ]);
-    if ($head['userName']) {
-        $view->addData([
-            'userName'    => $head['userName'],
-            'can_add'     => $head['can_add'],
-            'can_checkin' => $head['can_checkin']
-        ]);
-    }
-    if ($head['isadmin']) {
-        $view->addData([
-            'isadmin' => $head['isadmin']
-        ]);
-    }
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('message_documents_waiting'), $last_message);
 
     if ($user_obj->isAdmin()) {
         $id_array = $user_obj->getAllRevieweeIds();
@@ -96,32 +75,12 @@ if (!isset($_REQUEST['submit'])) {
 } elseif (isset($_REQUEST['submit']) && ($_REQUEST['submit'] =='commentAuthorize' || $_REQUEST['submit'] == 'commentReject')) {
     if (!isset($_REQUEST['checkbox'])) {
         header('Location: toBePublished.php?last_message=' . urlencode(msg('message_you_did_not_enter_value')));
+        exit;
     }
     $checkbox = isset($_REQUEST['checkbox']) ? $_REQUEST['checkbox'] : '';
 
     //draw_header(msg('label_comment'), $last_message);
-    $head = header_init(msg('label_comment'), $last_message);
-    $view->setData([
-        'breadCrumb'  => $head['breadCrumb'],
-        'site_title'  => $head['site_title'],
-        'base_url'    => $head['base_url'],
-        'page_title'  => $head['page_title'],
-        'lastmessage' => $head['lastmessage']
-    ]);
-    if ($head['userName']) {
-        $view->addData([
-            'userName'    => $head['userName'],
-            'can_add'     => $head['can_add'],
-            'can_checkin' => $head['can_checkin']
-        ]);
-    }
-    if ($head['isadmin']) {
-        $view->addData([
-            'isadmin' => $head['isadmin']
-        ]);
-    }
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('label_comment'), $last_message);
 
 /*    if($mode == 'reviewer')
     {
@@ -251,6 +210,7 @@ if (!isset($_REQUEST['submit'])) {
         }
     }
     header("Location: out.php?last_message=" .urlencode(msg('message_file_rejected')));
+    exit;
 } elseif (isset($_POST['submit']) && $_POST['submit'] == 'Authorize') {
     $checkbox = isset($_REQUEST['checkbox']) ? e::h($_REQUEST['checkbox']) : '';
     $reviewer_comments = "To= " . e::h($_POST['to']) . ";Subject=" . e::h($_POST['subject']) . ";Comments=" . e::h($_POST['comments']) . ";";
@@ -329,9 +289,11 @@ if (!isset($_REQUEST['submit'])) {
         } else {
             // If their user cannot authorize this file_id, display error
             header("Location:toBePublished.php?last_message=" .urlencode(msg('message_error_performing_action')));
+            exit;
         }
     }
     header('Location: out.php?last_message=' .urlencode(msg('message_file_authorized')));
+    exit;
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'comments' && isset($_REQUEST['id'])) {
     /*
      * Used to display the reviewer comments in a popup
@@ -340,10 +302,10 @@ if (!isset($_REQUEST['submit'])) {
     $file_obj = new FileData($file_id, $pdo);
     echo $file_obj->getReviewerComments();
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Cancel') {
-    $last_message=urlencode(msg('message_action_cancelled'));
+    $last_message = msg('message_action_cancelled');
     header('Location: toBePublished.php?last_message=' . urlencode($last_message));
+    exit;
 }
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

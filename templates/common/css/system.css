@@ -1,14 +1,225 @@
-    #last_message{
-        width: 400px;
-        border: 1px solid;
-        margin: 10px 0px;
-        padding:15px 10px 15px 50px;
-        background-repeat: no-repeat;
-        background-position: 10px center;
-        position:relative;
-        color: #00529B;
-        background-color: #BDE5F8;
-        background-image: url('../images/info.png');
-    }
-
-    label.error { float: none; color: red; padding-left: .5em; vertical-align: top; }
+/* global */
+.left {
+	text-align: left;
+}
+.center {
+	text-align: center;
+}
+.right {
+	text-align: right;
+}
+/* used in header.php template */
+#last_message{
+	position: relative;
+	width: 400px;
+	margin: 10px 0px;
+	border: 1px solid;
+	padding: 15px 10px 15px 50px;
+	color: #00529b;
+	background-color: #bde5f8;
+	background-image: url('../images/info.png');
+	background-repeat: no-repeat;
+	background-position: 10px center;
+}
+label.error {
+	float: none;
+	padding-left: 0.5em;
+	vertical-align: top;
+	color: red;
+}
+/* used in details.php template */
+#filedetails {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 4px;     /* cellspacing */
+}
+#filedetails th {
+	width: 110px;
+	text-align: right;
+	vertical-align: top;
+}
+#filedetails td {
+	padding: 1px;            /* cellpadding */
+}
+#fileactions {
+	text-align: center;
+}
+#fileactions .buttons {
+	padding: 5px;
+}
+/* used in history.php template */
+#filehistory {
+	border: 0;
+	border-spacing: 5px;     /* ignored due to border-collapse: collapse; in bootstrap*/
+}
+#filehistory thead > tr {
+	background-color: #83a9f7;
+}
+#filehistory tr {
+	vertical-align: top;
+}
+#filehistory tbody > tr:nth-child(odd) {
+	background-color: #fcfcfc;
+}
+#filehistory tbody > tr:nth-child(even) {
+	background-color: #e3e7f9;
+}
+#filehistory caption,
+#filehistory th,
+#filehistory td {
+	padding: 5px;
+	font-size: 0.9em;
+}
+/* used in settings.php template */
+.form-table tr {
+	border-bottom: 1px dotted #cccccc;
+}
+.form-table td {
+	padding-top: 10px;
+	vertical-align: top;
+}
+.form-table td:nth-child(2) {
+    padding-right: 1em;
+    padding-left: 1em;
+}
+#sortableSource:before {
+	content: "Available Columns:";     /* g_lang_area_admin_available */
+	padding-left: 0.5em;
+}
+#sortableSelection:before {
+	content: "Selected Columns:";      /* g_lang_area_admin_selected */
+	padding-left: 0.5em;
+}
+#sortableSource, #sortableSelection {
+	float: left;
+	width: 218px;
+	margin: 0 10px 0 0;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	padding-top: 5px;
+	min-height: 20px;
+	list-style-type: none;
+}
+#sortableSelection {
+	list-style-type: decimal;
+	list-style-position: inside;
+}
+#sortableSource li, #sortableSelection li {
+	width: 196px;
+	margin: 0 5px 5px 5px;
+	border: 1px solid black;
+	padding: 0 5px;
+	background: white;
+	cursor: pointer;
+}
+#sortableSelection li {
+	background: #cccccc;
+}
+#settings {
+	margin-top: 1em;
+}
+#settings button {
+	width: 75px;
+	margin: 0 2em;
+}
+/* used in in.php controller */
+#filesout {
+	border: 0;
+}
+#filesout thead > tr {
+	background-color: #83a9f7;
+}
+#filesout th {
+	padding: 1px 1em;
+	text-align: left;
+}
+#filesout tbody > tr:nth-child(odd) {
+	background-color: #FCFCFC;
+}
+#filesout tbody > tr:nth-child(even) {
+	background-color: #E3E7F9;
+}
+#filesout tbody > tr:hover {
+	background-color: #bdf9b6;
+}
+#filesout caption,
+#filesout .listtable {
+	padding: 1px 1em;
+}
+/* used in admin.php controller */
+.adminmenu tr {
+	vertical-align: top;
+}
+.adminmenu th {
+    min-width: 100px;
+    color: #ffffff;
+    background-color: #83a9f7;
+}
+.adminmenu th,
+.adminmenu td {
+    border: 1px solid black;
+    padding: 5px
+}
+.adminmenu td > div {
+    margin: 2px 0;
+}
+/* used in user_*.php templates */
+#user_table {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 4px;     /* cellspacing */
+}
+#user_table td {
+	padding: 1px;            /* cellpadding */
+}
+#user_table td:nth-child(1) label {
+	font-weight: bold;
+}
+#user_table .buttons {
+	padding: 5px;
+}
+/* used in category.php controller */
+#category_table {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 5px;     /* cellspacing */
+}
+#category_table td {
+	padding: 5px;            /* cellpadding */
+}
+#category_table td:nth-child(1) label {
+	font-weight: bold;
+}
+#category_table .buttons {
+	padding: 5px;
+}
+/* used in department.php controller */
+#department_table {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 5px;     /* cellspacing */
+}
+#department_table td {
+	padding: 5px;            /* cellpadding */
+}
+#department_table td:nth-child(1) label {
+	font-weight: bold;
+}
+#department_table .buttons {
+	padding: 5px;
+}
+/* used in filetype*.php templates */
+#filetype_table {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 5px;     /* cellspacing */
+}
+#filetype_table td {
+	padding: 5px;            /* cellpadding */
+}
+#filetype_table td:nth-child(1) label {
+	font-weight: bold;
+}
+#filetype_table .buttons {
+	padding: 5px;
+}

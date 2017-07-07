@@ -62,6 +62,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
             $id = $_REQUEST['id' . $i];
             if (strchr($id, '_')) {
                 header('Location:error.php?ec=20');
+                exit;
             }
             if ($userperm_obj->canAdmin($id)) {
                 $file_obj = new FileData($id, $pdo);
@@ -79,6 +80,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     callPluginMethod('onAfterArchiveFile');
 
     header('Location: out.php?last_message=' . urlencode($last_message));
+    exit;
 
 } elseif (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'view_del_archive') {
 
@@ -98,28 +100,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
     $luserperm_obj = new UserPermission($_SESSION['uid'], $pdo);
 
     //draw_header(msg('area_deleted_files'), $last_message);
-    $head = header_init(msg('area_deleted_files'), $last_message);
-    $view->setData([
-        'breadCrumb'  => $head['breadCrumb'],
-        'site_title'  => $head['site_title'],
-        'base_url'    => $head['base_url'],
-        'page_title'  => $head['page_title'],
-        'lastmessage' => $head['lastmessage']
-    ]);
-    if ($head['userName']) {
-        $view->addData([
-            'userName'    => $head['userName'],
-            'can_add'     => $head['can_add'],
-            'can_checkin' => $head['can_checkin']
-        ]);
-    }
-    if ($head['isadmin']) {
-        $view->addData([
-            'isadmin' => $head['isadmin']
-        ]);
-    }
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('area_deleted_files'), $last_message);
 
     // this is not referenced anywhere
     $page_url = e::h($_SERVER['PHP_SELF']) . '?mode=' . $_REQUEST['mode'];
@@ -162,6 +143,7 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
         }
     }
     header('Location:' . urlencode($redirect) . '?last_message=' . urlencode(msg('undeletepage_file_permanently_deleted')));
+    exit;
 
 } elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Undelete') {
     if (isset($_REQUEST['checkbox'])) {
@@ -172,11 +154,11 @@ if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'tmpdel') {
         }
     }
     header('Location:' . urlencode($redirect) . '?last_message=' . urlencode(msg('undeletepage_file_undeleted')));
+    exit;
 }
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();
 
 /*
  * Permanently Delete A File

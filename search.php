@@ -46,29 +46,7 @@ $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : 
 /// includes
 $start_time = time();
 //draw_header(msg('search'), $last_message);
-$head = header_init(msg('search'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage']
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-$view->setView('header');
-echo $view->__invoke();
-
+view_header(msg('search'), $last_message);
 
 if (!isset($_GET['submit'])) {
 ?>
@@ -286,5 +264,4 @@ if (!isset($_GET['submit'])) {
     //echo '<br> <b> Load Permission Time: ' . ($e_getFTime - $s_getFTime) . ' </b>';
 }
 
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

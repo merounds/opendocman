@@ -148,6 +148,7 @@ if (isset($_POST['login'])) {
         callPluginMethod('onFailedLogin');
 
         header('Location: error.php?ec=0');
+        exit;
     }
 } elseif (!isset($_POST['login']) && $GLOBALS['CONFIG']['authen'] == 'mysql') {
     $redirection = (isset($_REQUEST['redirection']) ? $_REQUEST['redirection'] : '');
@@ -166,5 +167,4 @@ if (isset($_POST['login'])) {
 }
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

@@ -81,6 +81,7 @@
         </tr>
     </table>
     <div id="content">
+        <br style="clear: both;" />
 <?php if ($this->lastmessage != ''): ?>
         <div id="last_message"><?= e::h($this->lastmessage) ?></div>
 <?php endif; ?>

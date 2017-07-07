@@ -12,21 +12,21 @@
   src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 </script>
 <?php endif; ?>
+        <br style="clear: both;" />
     </div> <!-- /content -->
-      <br style="clear: both;" />
-      <hr />
+    <hr />
 
-      <footer>
+    <footer>
 <code>theme: <?= $GLOBALS['CONFIG']['theme'] ?></code><br />
 <code>Default footer</code><br />
-          <a href="mailto:<?= e::h($GLOBALS['CONFIG']['site_mail']) ?>"><?= e::h($GLOBALS['CONFIG']['title']) ?></a><p />
-          <a href="http://www.opendocman.com/" target="_new">OpenDocMan</a><br />
-          Copyright &copy; 2000-2015 Stephen Lawrence Jr.<br />
-          <p>
-              <a href="http://www.opendocman.com/forum/" target="_new"><?= e::h(msg('footer_support')) ?></a> |
-              <a href="http://opendocman.uservoice.com" target="_new"><?= e::h(msg('footer_feedback')) ?></a> |
-              <a href="https://github.com/opendocman/opendocman/issues" target="_new"><?= e::h(msg('footer_bugs')) ?></a>
-          </p>
-      </footer>
+        <a href="mailto:<?= e::h($GLOBALS['CONFIG']['site_mail']) ?>"><?= e::h($GLOBALS['CONFIG']['title']) ?></a><p />
+        <a href="http://www.opendocman.com/" target="_blank">OpenDocMan</a><br />
+        Copyright &copy; 2000-2015 Stephen Lawrence Jr.<br />
+        <p>
+            <a href="http://www.opendocman.com/forum/" target="_blank"><?= e::h(msg('footer_support')) ?></a> |
+            <a href="http://opendocman.uservoice.com" target="_blank"><?= e::h(msg('footer_feedback')) ?></a> |
+            <a href="https://github.com/opendocman/opendocman/issues" target="_blank"><?= e::h(msg('footer_bugs')) ?></a>
+        </p>
+    </footer>
 </body>
 </html>

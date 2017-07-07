@@ -39,32 +39,12 @@ $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : 
 $user_obj = new User($_SESSION['uid'], $pdo);
 if (!$user_obj->isRoot()) {
     header('Location:error.php?ec=24');
+    exit;
 }
 $flag = 0;
 if (isset($_GET['submit']) && $_GET['submit'] == 'view_checkedout') {
     //draw_header(msg('label_checked_out_files'), $last_message);
-    $head = header_init(msg('label_checked_out_files'), $last_message);
-    $view->setData([
-        'breadCrumb'  => $head['breadCrumb'],
-        'site_title'  => $head['site_title'],
-        'base_url'    => $head['base_url'],
-        'page_title'  => $head['page_title'],
-        'lastmessage' => $head['lastmessage']
-    ]);
-    if ($head['userName']) {
-        $view->addData([
-            'userName'    => $head['userName'],
-            'can_add'     => $head['can_add'],
-            'can_checkin' => $head['can_checkin']
-        ]);
-    }
-    if ($head['isadmin']) {
-        $view->addData([
-            'isadmin' => $head['isadmin']
-        ]);
-    }
-    $view->setView('header');
-    echo $view->__invoke();
+    view_header(msg('label_checked_out_files'), $last_message);
 
     // this is not referenced anywhere
     $page_url = 'file_ops.php?';
@@ -101,8 +81,7 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'view_checkedout') {
     }
 
     //draw_footer();
-    $view->setView('footer');
-    echo $view->__invoke();
+    view_footer();
 
 } elseif (isset($_POST['submit']) && $_POST['submit'] == 'Clear Status') {
     if (isset($_POST["checkbox"])) {
@@ -113,6 +92,7 @@ if (isset($_GET['submit']) && $_GET['submit'] == 'view_checkedout') {
         }
     }
     header('Location:file_ops.php?state=2&submit=view_checkedout');
+    exit;
 } else {
     echo 'Nothing to do';
 }

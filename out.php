@@ -40,28 +40,7 @@ if (!isset($_SESSION['uid'])) {
 $last_message = isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '';
 
 //draw_header(msg('label_file_listing'), $last_message);
-$head = header_init(msg('label_file_listing'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage'],
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-$view->setView('header');
-echo $view->__invoke();
+view_header(msg('label_file_listing'), $last_message);
 
 sort_browser();
 
@@ -76,18 +55,18 @@ if ($user_obj->isAdmin()) {
 }
 
 if ($reviewIdCount > 0) {
-    echo '<img src="images/exclamation.gif" /> <a href="toBePublished.php?state=1">'.msg('message_documents_waiting'). '</a>: ' . e::h($reviewIdCount)  . '</a><br />';
+    echo '<img src="images/exclamation.gif" /> <a href="toBePublished.php?state=1">' . msg('message_documents_waiting') . '</a>: ' . e::h($reviewIdCount) . '</a><br />';
 }
 
 $rejected_files_obj = $user_obj->getRejectedFileIds();
 
 if (isset($rejected_files_obj[0]) && $rejected_files_obj[0] != null) {
-    echo '<img src="images/exclamation_red.gif" /> <a href="rejects.php?state=1">'. msg('message_documents_rejected') . '</a>: ' .sizeof($rejected_files_obj) . '<br />';
+    echo '<img src="images/exclamation_red.gif" /> <a href="rejects.php?state=1">' . msg('message_documents_rejected') . '</a>: ' . sizeof($rejected_files_obj) . '<br />';
 }
 
 $llen = $user_obj->getNumExpiredFiles();
 if ($llen > 0) {
-    echo '<img src="images/exclamation_red.gif" /><a href="javascript:window.location=\'search.php?submit=submit&sort_by=id&where=author_locked_files&sort_order=asc&keyword=-1&exact_phrase=on\'">' .msg('message_documents_expired'). ': ' . e::h($llen) . '</a><br />';
+    echo '<img src="images/exclamation_red.gif" /> <a href="javascript:window.location=\'search.php?submit=submit&sort_by=id&where=author_locked_files&sort_order=asc&keyword=-1&exact_phrase=on\'">' .msg('message_documents_expired') . ': ' . e::h($llen) . '</a><br />';
 }
 // get a list of documents the user has "view" permission for
 // get current user's information-->department
@@ -118,8 +97,7 @@ if ($files != -1) {
 }
 
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();
 
 //Fb::log('<br> <b> Load Page Time: ' . (getmicrotime() - $start_time) . ' </b>');
 //echo '<br> <b> Load Permission Time: ' . ($end_P - $start_P) . ' </b>';

@@ -5,7 +5,7 @@ use Aura\Html\Escaper as e;
 user.php - user administration
 Copyright (C) 2002, 2003, 2004 Stephen Lawrence Jr., Khoa Nguyen
 Copyright (C) 2005-2015 Stephen Lawrence Jr.
- 
+
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2
@@ -23,11 +23,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // user.php - Administer Users
 // check for valid session
 // if changes are to be made on other account, then $item will contain
-// the other account's id number.
+// the other accounts id number.
 
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -37,7 +40,7 @@ $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : 
 
 $user_obj = new User($_SESSION['uid'], $pdo);
 
-// Make sure the item and uid are set, then check to make sure they are the same and they have admin privs, otherwise, user is not able to modify another users' info
+// Make sure the item and uid are set, then check to make sure they are the same and they have admin privs, otherwise, user is not able to modify another users info
 if (isset($_SESSION['uid']) & isset($_GET['item'])) {
     if ($_SESSION['uid'] != $_GET['item'] && $user_obj->isAdmin() != true) {
         header('Location: error.php?ec=4');
@@ -45,6 +48,7 @@ if (isset($_SESSION['uid']) & isset($_GET['item'])) {
     }
 }
 
+// not used
 $redirect = 'admin.php';
 
 //If the user is not an admin and he/she is trying to access other account that
@@ -59,9 +63,10 @@ if ($mode == 'disabled' && isset($_GET['item']) && $_GET['item'] != $_SESSION['u
     exit;
 }
 
-
 if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
-    draw_header(msg('area_add_new_user'), $last_message);
+//    draw_header(msg('area_add_new_user'), $last_message);
+    view_header(msg('area_add_new_user'), $last_message);
+
     // Check to see if user is admin
 
     $onBeforeAddUser = callPluginMethod('onBeforeAddUser');
@@ -75,15 +80,22 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
     $stmt->execute(array());
     $department_list = $stmt->fetchAll();
 
-    $GLOBALS['smarty']->assign('onBeforeAddUser', $onBeforeAddUser);
-    $GLOBALS['smarty']->assign('mysql_auth', $mysql_auth);
-    $GLOBALS['smarty']->assign('rand_password', $rand_password);
-    $GLOBALS['smarty']->assign('department_list', $department_list);
+//    $GLOBALS['smarty']->assign('onBeforeAddUser', $onBeforeAddUser);
+//    $GLOBALS['smarty']->assign('mysql_auth', $mysql_auth);
+//    $GLOBALS['smarty']->assign('rand_password', $rand_password);
+//    $GLOBALS['smarty']->assign('department_list', $department_list);
+//    display_smarty_template('user_add.tpl');
+    $view->setData([
+        'onBeforeAddUser' => $onBeforeAddUser,
+        'mysql_auth'      => $mysql_auth,
+        'rand_password'   => $rand_password,
+        'department_list' => $department_list
+    ]);
+    $view->setView('user_add');
+    echo $view->__invoke();
 
-    display_smarty_template('user_add.tpl');
-
-    draw_footer();
-} elseif (isset($_POST['submit']) && 'Add User' == $_POST['submit']) {
+//    draw_footer();
+} elseif (isset($_POST['submit']) && $_POST['submit'] == 'Add User') {
     if (!$user_obj->isAdmin()) {
         header('Location: error.php?ec=4');
         exit;
@@ -188,14 +200,15 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
             mail($mail_to, $mail_subject, ($mail_greeting . ' ' . $mail_body . $mail_salute), $mail_headers,
                 $mail_flags);
         }
-        $last_message = urlencode(msg('message_user_successfully_added'));
 
         // Call the plugin API call for this section
         callPluginMethod('onAfterAddUser');
 
+        $last_message = msg('message_user_successfully_added');
         header('Location: admin.php?last_message=' . urlencode($last_message));
+        exit;
     }
-} elseif (isset($_POST['submit']) && 'Delete User' == $_POST['submit']) {
+} elseif (isset($_POST['submit']) && $_POST['submit'] == 'Delete User') {
     // Make sure they are an admin
     if (!$user_obj->isAdmin()) {
         header('Location: error.php?ec=4');
@@ -223,54 +236,84 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
     $stmt->execute(array(':id' => $_POST['id']));
 
     // back to main page
-    $last_message = urlencode('#' . $_POST['id'] . ' ' . msg('message_user_successfully_deleted'));
+    $last_message = '#' . $_POST['id'] . ' ' . msg('message_user_successfully_deleted');
     header('Location: admin.php?last_message=' . urlencode($last_message));
+    exit;
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Delete') {
     // If demo mode, don't allow them to update the demo account
     if (@$GLOBALS['CONFIG']['demo'] == 'True') {
-        draw_header('Delete User ', $last_message);
-        echo 'Sorry, demo mode only, you can\'t do that';
-        draw_footer();
+//        draw_header('Delete User ', $last_message);
+        view_header('Delete User ', $last_message);
+//        echo 'Sorry, demo mode only, you can\'t do that';
+        echo msg('message_sorry_demo_mode');
+//        draw_footer();
+        view_footer();
         exit;
     }
     $delete = '';
     $user_obj = new User($_POST['item'], $pdo);
-    draw_header(msg('userpage_status_delete') . $user_obj->getName(), $last_message);
+//    draw_header(msg('userpage_status_delete') . $user_obj->getName(), $last_message);
+    view_header(msg('userpage_status_delete') . $user_obj->getName(), $last_message);
 
     // smarty calls
-    $GLOBALS['smarty']->assign('user_id', $user_obj->getId());
-    $GLOBALS['smarty']->assign('full_name', $user_obj->getFullName());
+//    $GLOBALS['smarty']->assign('user_id', $user_obj->getId());
+//    $GLOBALS['smarty']->assign('full_name', $user_obj->getFullName());
+//    display_smarty_template('user_delete.tpl');
+    $view->setData([
+        'user_id'   => $user_obj->getId(),
+        'full_name' => $user_obj->getFullName()
+    ]);
+    $view->setView('user_delete');
+    echo $view->__invoke();
 
-    display_smarty_template('user_delete.tpl');
-
-    draw_footer();
+//    draw_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'deletepick') {
+// not used
     $deletepick = '';
-    draw_header(msg('userpage_user_delete'), $last_message);
+//    draw_header(msg('userpage_user_delete'), $last_message);
+    view_header(msg('userpage_user_delete'), $last_message);
 
-    $query = "SELECT id,username, last_name, first_name FROM {$GLOBALS['CONFIG']['db_prefix']}user ORDER BY last_name";
+    $query = "SELECT id, username, last_name, first_name FROM {$GLOBALS['CONFIG']['db_prefix']}user ORDER BY last_name";
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $user_list = $stmt->fetchAll();
 
-    $GLOBALS['smarty']->assign('user_list', $user_list);
-    $GLOBALS['smarty']->assign('state', $_REQUEST['state']);
-    display_smarty_template('user_delete_pick.tpl');
-    draw_footer();
+//    $GLOBALS['smarty']->assign('user_list', $user_list);
+//    $GLOBALS['smarty']->assign('state', $_REQUEST['state']);
+//    display_smarty_template('user_delete_pick.tpl');
+    $view->setData([
+        'state'     => $_REQUEST['state'],
+        'user_list' => $user_list
+    ]);
+    $view->setView('user_delete_pick');
+    echo $view->__invoke();
+
+//    draw_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Show User') {
     $user_obj = new User($_POST['item'], $pdo);
-    draw_header(msg('userpage_show_user') . $user_obj->getName(), $last_message);
+//    draw_header(msg('userpage_show_user') . $user_obj->getName(), $last_message);
+    view_header(msg('userpage_show_user') . $user_obj->getName(), $last_message);
 
-    $GLOBALS['smarty']->assign('user', $user_obj);
-    $GLOBALS['smarty']->assign('first_name', $user_obj->first_name);
-    $GLOBALS['smarty']->assign('last_name', $user_obj->last_name);
-    $GLOBALS['smarty']->assign('isAdmin', $user_obj->isAdmin());
-    $GLOBALS['smarty']->assign('isReviewer', $user_obj->isReviewer());
-    display_smarty_template('user_show.tpl');
+//    $GLOBALS['smarty']->assign('user', $user_obj);
+//    $GLOBALS['smarty']->assign('first_name', $user_obj->first_name);
+//    $GLOBALS['smarty']->assign('last_name', $user_obj->last_name);
+//    $GLOBALS['smarty']->assign('isAdmin', $user_obj->isAdmin());
+//    $GLOBALS['smarty']->assign('isReviewer', $user_obj->isReviewer());
+//    display_smarty_template('user_show.tpl');
+    $view->setData([
+        'user'       => (array)$user_obj,
+        'first_name' => $user_obj->first_name,
+        'last_name'  => $user_obj->last_name,
+        'isAdmin'    => $user_obj->isAdmin(),
+        'isReviewer' => $user_obj->isReviewer()
+    ]);
+    $view->setView('user_show');
+    echo $view->__invoke();
 
-    draw_footer();
+//    draw_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'showpick') {
-    draw_header(msg('userpage_choose_user'), $last_message);
+//    draw_header(msg('userpage_choose_user'), $last_message);
+    view_header(msg('userpage_choose_user'), $last_message);
 
     $showpick = '';
 
@@ -281,22 +324,32 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
     $stmt->execute(array());
     $user_list = $stmt->fetchAll();
 
-    $GLOBALS['smarty']->assign('user_list', $user_list);
-    $GLOBALS['smarty']->assign('state', $state);
-    display_smarty_template('user_show_pick.tpl');
+//    $GLOBALS['smarty']->assign('user_list', $user_list);
+//    $GLOBALS['smarty']->assign('state', $state);
+//    display_smarty_template('user_show_pick.tpl');
 
-    draw_footer();
+    $view->setData([
+        'state'     => $state,
+        'user_list' => $user_list
+    ]);
+    $view->setView('user_show_pick');
+    echo $view->__invoke();
+
+//    draw_footer();
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'Modify User') {
     // If demo mode, don't allow them to update the demo account
     if (@$GLOBALS['CONFIG']['demo'] == 'True') {
-        draw_header(msg('userpage_update_user'), $last_message);
+//        draw_header(msg('userpage_update_user'), $last_message);
+        view_header(msg('userpage_update_user'), $last_message);
         echo msg('userpage_update_user_demo');
-        draw_footer();
+//        draw_footer();
+        view_footer();
         exit;
     } else {
         // Begin Not Demo Mode
         $user_obj = new User($_REQUEST['item'], $pdo);
-        draw_header(msg('userpage_update_user') . $user_obj->getName(), $last_message);
+//        draw_header(msg('userpage_update_user') . $user_obj->getName(), $last_message);
+        view_header(msg('userpage_update_user') . $user_obj->getName(), $last_message);
 
         $query = "SELECT * FROM {$GLOBALS['CONFIG']['db_prefix']}user WHERE id = :id ";
         $stmt = $pdo->prepare($query);
@@ -357,23 +410,38 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
             $can_checkin = "checked";
         }
 
-        $GLOBALS['smarty']->assign('user', $user_obj);
-        $GLOBALS['smarty']->assign('mysql_auth', $GLOBALS["CONFIG"]["authen"] == 'mysql');
-        $GLOBALS['smarty']->assign('mode', $mode);
-        $GLOBALS['smarty']->assign('user_department', $user_obj->getDeptID());
-        $GLOBALS['smarty']->assign('display_reviewer_row', $display_reviewer_row);
-        $GLOBALS['smarty']->assign('is_admin', $user_obj->isAdmin());
-        $GLOBALS['smarty']->assign('department_list', $department_list);
-        $GLOBALS['smarty']->assign('department_select_options', $department_select_options);
-        $GLOBALS['smarty']->assign('can_add', $can_add);
-        $GLOBALS['smarty']->assign('can_checkin', $can_checkin);
-        display_smarty_template('user/edit.tpl');
+//        $GLOBALS['smarty']->assign('user', $user_obj);
+//        $GLOBALS['smarty']->assign('mysql_auth', $GLOBALS["CONFIG"]["authen"] == 'mysql');
+//        $GLOBALS['smarty']->assign('mode', $mode);
+//        $GLOBALS['smarty']->assign('user_department', $user_obj->getDeptID());
+//        $GLOBALS['smarty']->assign('display_reviewer_row', $display_reviewer_row);
+//        $GLOBALS['smarty']->assign('is_admin', $user_obj->isAdmin());
+//        $GLOBALS['smarty']->assign('department_list', $department_list);
+//        $GLOBALS['smarty']->assign('department_select_options', $department_select_options);
+//        $GLOBALS['smarty']->assign('can_add', $can_add);
+//        $GLOBALS['smarty']->assign('can_checkin', $can_checkin);
+//        display_smarty_template('user/edit.tpl');
+
+        $view->setData([
+            'user'                      => $user_obj,
+            'mysql_auth'                => $GLOBALS["CONFIG"]["authen"] == 'mysql',
+            'mode'                      => $mode,
+            'user_department'           => $user_obj->getDeptID(),
+            'display_reviewer_row'      => $display_reviewer_row,
+            'is_admin'                  => $user_obj->isAdmin(),
+            'department_list'           => $department_list,
+            'department_select_options' => $department_select_options,
+            'can_add'                   => $can_add,
+            'can_checkin'               => $can_checkin
+        ]);
+        $view->setView('user_edit');
+        echo $view->__invoke();
     }
 
-    draw_footer();
-} elseif (isset($_POST['submit']) && 'Update User' == $_POST['submit']) {
+//    draw_footer();
+} elseif (isset($_POST['submit']) && $_POST['submit'] == 'Update User') {
 
-    // Check to make sue they are either the user being modified or an admin
+    // Check to make sure they are either the user being modified or an admin
     if (($_POST['id'] != $_SESSION['uid']) && !$user_obj->isAdmin()) {
         header('Location: error.php?ec=4');
         exit;
@@ -480,10 +548,12 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
 
     // back to main page
 
-    $last_message = urlencode(msg('message_user_successfully_updated'));
+    $last_message = msg('message_user_successfully_updated');
     header('Location: out.php?last_message=' . urlencode($last_message));
+    exit;
 } elseif (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'updatepick') {
-    draw_header(msg('userpage_modify_user'), $last_message);
+//    draw_header(msg('userpage_modify_user'), $last_message);
+    view_header(msg('userpage_modify_user'), $last_message);
 
     // Check to see if user is admin
     $query = "SELECT admin FROM {$GLOBALS['CONFIG']['db_prefix']}admin WHERE id = :uid and admin = '1'";
@@ -500,16 +570,27 @@ if (isset($_REQUEST['submit']) and $_REQUEST['submit'] == 'adduser') {
     $query = "SELECT id, username, first_name, last_name FROM {$GLOBALS['CONFIG']['db_prefix']}user ORDER BY last_name";
     $stmt = $pdo->prepare($query);
     $stmt->execute();
-    $users = $stmt->fetchAll();
+    $user_list = $stmt->fetchAll();
 
-    $GLOBALS['smarty']->assign('state', (int)$_REQUEST['state'] + 1);
-    $GLOBALS['smarty']->assign('users', $users);
-    display_smarty_template('user/edit_pick.tpl');
+//    $GLOBALS['smarty']->assign('state', (int)$_REQUEST['state'] + 1);
+//    $GLOBALS['smarty']->assign('user_list', $user_list);
+//    display_smarty_template('user/edit_pick.tpl');
+    $view->setData([
+        'state' => (int)$_REQUEST['state'] + 1,
+        'user_list' => $user_list
+    ]);
+    $view->setView('user_edit_pick');
+    echo $view->__invoke();
 
-    draw_footer();
+//    draw_footer();
 } elseif (isset($_REQUEST['cancel']) and $_REQUEST['cancel'] == 'Cancel') {
-    $last_message = "Action Cancelled";
+//    $last_message = "Action Cancelled";
+    $last_message = msg('message_action_cancelled');
     header('Location: admin.php?last_message=' . urlencode($last_message));
+    exit;
 } else {
-    header('Location: admin.php?last_message=' . urlencode('Unrecognizalbe action'));
+    header('Location: admin.php?last_message=' . urlencode('Unrecognizable action'));
+    exit;
 }
+
+view_footer();

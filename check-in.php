@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -72,7 +75,7 @@ if (!isset($_POST['submit'])) {
         header('Location:error.php?ec=2&last_message=' . urlencode($last_message));
         exit;
     } else {
-        draw_header(msg('button_check_in'), $last_message);
+//        draw_header(msg('button_check_in'), $last_message);
         $description = $result['description'];
         $real_name = $result['realname'];
 
@@ -81,46 +84,49 @@ if (!isset($_POST['submit'])) {
         }
 
         // start displaying form
-        ?>
-<table border="0" cellspacing="5" cellpadding="5">
-    <form action="check-in.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="id" value="<?php echo e::h($_GET['id']);
-        ?>">
-        <tr>
-            <td><b><?php echo msg('label_filename');
-        ?></b></td>
-            <td><b><?php echo e::h($real_name);
-        ?></b></td>
-        </tr>
+        view_header(msg('button_check_in'), $last_message);
+?>
 
-        <tr>
-            <td><b><?php echo msg('label_description');
-        ?></b></td>
-            <td><?php echo e::h($description);
-        ?></td>
-        </tr>
+        <form action="check-in.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="<?= e::h($_GET['id']); ?>">
+        <table border="0" cellspacing="5" cellpadding="5">
+            <tbody>
+                <tr>
+                    <td><label><?= msg('label_filename'); ?></label></td>
+                    <td><?= e::h($real_name); ?></td>
+                </tr>
 
-        <tr>
-            <td><b><?php echo msg('label_file_location');
-        ?></b></td>
-            <td><input name="file" type="file"></td>
-        </tr>
+                <tr>
+                    <td><label><?= msg('label_description'); ?></label></td>
+                    <td><?= e::h($description); ?></td>
+                </tr>
 
-        <tr>
-            <td><?php echo msg('label_note_for_revision_log');
-        ?></td>
-            <td><textarea name="note"></textarea></td>
-        </tr>
+                <tr>
+                    <td><label for="checkinfile"><?= msg('label_file_location'); ?></label></td>
+                    <td><input id="checkinfile" name="file" type="file" /></td>
+                </tr>
+                <tr>
+                    <td><label for="checkinnote"><?= msg('label_note_for_revision_log'); ?></label></td>
+                    <td><textarea id="checkinnote" name="note"></textarea></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><!-- buttons --></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="submit" name="submit" value="Check  Document In"><?= msg('button_check_in'); ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        </form>
 
-
-        <tr>
-            <td colspan="4" align="center"><div class="buttons"><button class="positive" type="submit" name="submit" value="Check  Document In"><?php echo msg('button_check_in')?></button></div></td>
-        </tr>
-    </form>
-</table>
-        <?php
-        draw_footer();
-        ?>
+<?php
+//        draw_footer();
+        view_footer();
+?>
 <script type="text/javascript">
     function check(select, send_dept, send_all)
     {
@@ -134,7 +140,8 @@ if (!isset($_POST['submit'])) {
         }
     }
 </script>
-        <?php
+
+<?php
 
     }//end else
 }//end if (!$submit)
@@ -162,10 +169,10 @@ else {
         header('Location: error.php?last_message=' . urlencode($last_message));
         exit;
     }
-    
+
     // Lets try and determine the true file-type
     $file_mime = File::mime($_FILES['file']['tmp_name'], $_FILES['file']['name']);
-    
+
     // check file type
     foreach ($GLOBALS['CONFIG']['allowedFileTypes'] as $this_type) {
         if ($file_mime == $this_type) {
@@ -175,7 +182,7 @@ else {
             $allowedFile = 0;
         }
     }
-    
+
     // illegal file type!
     if ($allowedFile != 1) {
         $last_message='MIMETYPE: ' . $file_mime . ' Failed';
@@ -257,23 +264,23 @@ else {
         // rename and save file
         $newFileName = $id . '.dat';
         copy($_FILES['file']['tmp_name'], $GLOBALS['CONFIG']['dataDir'] . $newFileName);
-    
+
         AccessLog::addLogEntry($id, 'I', $pdo);
-    
+
         /**
          * Send out email notifications to reviewers
          */
         $file_obj = new FileData($id, $pdo);
         $get_full_name = $user_obj->getFullName();
         $full_name = $get_full_name[0] . ' ' . $get_full_name[1];
-        
+
         $department = $file_obj->getDepartment();
-        
+
         $reviewer_obj = new Reviewer($id, $pdo);
         $reviewer_list = $reviewer_obj->getReviewersForDepartment($department);
 
         $date = date('Y-m-d H:i:s T');
-        
+
         // Build email for general notices
         $mail_subject = msg('checkinpage_file_was_checked_in');
         $mail_body2 = msg('checkinpage_file_was_checked_in') . PHP_EOL;
@@ -284,7 +291,7 @@ else {
         $mail_body2.=msg('email_thank_you') . ',' . PHP_EOL . PHP_EOL;
         $mail_body2.=msg('email_automated_document_messenger') . PHP_EOL . PHP_EOL;
         $mail_body2.=$GLOBALS['CONFIG']['base_url'] . PHP_EOL . PHP_EOL;
-        
+
         $email_obj = new Email();
         $email_obj->setFullName($full_name);
         $email_obj->setSubject($mail_subject);
@@ -292,7 +299,7 @@ else {
         $email_obj->setRecipients($reviewer_list);
         $email_obj->setBody($mail_body2);
         $email_obj->sendEmail();
-        
+
         // clean up and back to main page
         $last_message = msg('message_document_checked_in');
         header('Location: out.php?last_message=' . urlencode($last_message));
