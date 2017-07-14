@@ -103,6 +103,18 @@ function nudge() {
             .animate({left: "+=5px"}, 20).animate({top: "+=5px"}, 20).animate({top: "-=10px"}, 20).animate({left: "-=10px"}, 20)
             .animate({top: "+=5px"}, 20).animate({left: "+=5px"}, 20);
 }
+// popup help on add/edit pages
+function popup(mylink, windowname)
+{
+	if (! window.focus)return true;
+	var href;
+	if (typeof(mylink) == 'string')
+		href=mylink;
+	else
+		href=mylink.href;
+	window.open(href, windowname, 'width=300,height=500,scrollbars=yes');
+	return false;
+}
 
 //subselect udf
 function showdivs(str, add, table)
@@ -125,10 +137,10 @@ function showdivs(str, add, table)
             document.getElementById("txtHint").innerHTML = xmlhttp.responseText;
         }
     }
-    if (add_value == 'add') {
+    if (add_value == 'add') { // never occurs, appears to have been moved to showdropdown()
         xmlhttp.open("GET", "ajax_udf.php?q=" + str + '&add_value=' + add_value + '&table=' + table_value, true);
     }
-    else if (add_value == 'edit') {
+    else if (add_value == 'edit') { // never occurs, appears to have been moved to showdropdown()
         xmlhttp.open("GET", "ajax_udf.php?q=" + str + '&add_value=' + add_value + '&table=' + table_value, true);
     }
     else {

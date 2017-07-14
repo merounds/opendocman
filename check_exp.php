@@ -21,14 +21,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-include('odm-load.php');
 $start_time = time();
 session_start();
+// includes
+include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
-// includes
-draw_header(msg('area_file_expiration'), $last_message);
+//draw_header(msg('area_file_expiration'), $last_message);
+view_header(msg('area_file_expiration'), $last_message);
 
 // Look up user
 $user_query = "
@@ -47,6 +51,7 @@ $user_result = $stmt->fetch();
 
 if ($stmt->rowCount() != 1) {
     header('location:error.php?ec=22');
+    exit;
 } else {
     $root_id = $user_result['id'];
 }
@@ -152,4 +157,5 @@ if ($GLOBALS['CONFIG']['file_expired_action'] == 2) {
     }
 }
 echo msg('message_all_actions_successfull');
-draw_footer();
+//draw_footer();
+view_footer();

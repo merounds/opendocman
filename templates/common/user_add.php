@@ -75,8 +75,8 @@
                     <td><!-- buttons --></td>
                     <td>
                         <div class="buttons">
-                            <button id="submitButton" class="positive" type="Submit" name="submit" value="Add User"><?= e::h(msg('userpage_button_add_user')) ?></button>
-                            <button id="cancelButton" class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('userpage_button_cancel')) ?></button>
+                            <button id="submitButton" class="positive" type="Submit" name="submit" value="Add User"><?= e::h(msg('button_add_user')) ?></button>
+                            <button id="cancelButton" class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('button_cancel')) ?></button>
                         </div>
                     </td>
                 </tr>

@@ -33,41 +33,20 @@ if (!isset($_SESSION['uid'])) {
 $last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
 
 //draw_header(msg('area_personal_profile'), $last_message);
-$head = header_init(msg('area_personal_profile'), $last_message);
-$view->setData([
-    'breadCrumb'  => $head['breadCrumb'],
-    'site_title'  => $head['site_title'],
-    'base_url'    => $head['base_url'],
-    'page_title'  => $head['page_title'],
-    'lastmessage' => $head['lastmessage']
-]);
-if ($head['userName']) {
-    $view->addData([
-        'userName'    => $head['userName'],
-        'can_add'     => $head['can_add'],
-        'can_checkin' => $head['can_checkin']
-    ]);
-}
-if ($head['isadmin']) {
-    $view->addData([
-        'isadmin' => $head['isadmin']
-    ]);
-}
-$view->setView('header');
-echo $view->__invoke();
+view_header(msg('area_personal_profile'), $last_message);
 ?>
-
-<!-- <html>
+<!--
+<html>
     <br><br>
     <INPUT type="hidden" name="callee" value="profile.php">
     <table name="list" align="center" border="0">
            <tr><td><a href="user.php?submit=Modify+User&item=<?php echo $_SESSION['uid']; ?>"><?php echo msg('profilepage_update_profile')?></a></td></tr>
-                        </table> -->
+                        </table>
+ -->
 
     <p style="text-align: center;">
-        <a href="user.php?submit=Modify+User&item=<?php echo $_SESSION['uid']; ?>"><?php echo msg('profilepage_update_profile')?></a>
+        <a href="user.php?submit=Modify+User&item=<?= $_SESSION['uid']; ?>"><?= msg('profilepage_update_profile') ?></a>
     </p>
 <?php
 //draw_footer();
-$view->setView('footer');
-echo $view->__invoke();
+view_footer();

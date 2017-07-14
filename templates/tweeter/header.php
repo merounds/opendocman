@@ -9,17 +9,12 @@
     <meta name="keywords" content="" />
     <meta name="author" content="" />
 
-    <!-- Le styles -->
+    <!-- Must Include This File -->
+<?php include "./templates/common/head_include.php"; ?>
 
+    <!-- Le styles -->
     <link rel="stylesheet" type="text/css" href="<?= $this->base_url ?>/templates/tweeter/css/bootstrap.css" />
     <link rel="stylesheet" type="text/css" href="<?= $this->base_url ?>/templates/tweeter/css/bootstrap-responsive.css" />
-    <link rel="stylesheet" type="text/css" href="<?= $this->base_url ?>/templates/tweeter/css/tweeter.css" />
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-    </style>
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -34,9 +29,19 @@
     <link rel="apple-touch-icon" sizes="72x72" href="<?= $this->base_url ?>/templates/tweeter/images/apple-touch-icon-72x72.png" />
     <link rel="apple-touch-icon" sizes="114x114" href="<?= $this->base_url ?>/templates/tweeter/images/apple-touch-icon-114x114.png" />
 
-    <!-- Must Include This File -->
-<?php include "./templates/common/head_include.php"; ?>
+    <link rel="stylesheet" type="text/css" href="<?= $this->base_url ?>/templates/tweeter/css/tweeter.css" />
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
 
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("ul.nav>li#nav-<?= pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME) ?>").addClass("active");
+      });
+    </script>
   </head>
 
   <body>
@@ -53,38 +58,37 @@
           </a>
           <a class="brand" href="<?= $this->base_url ?>/out.php"><?= e::h($GLOBALS['CONFIG']['title']) ?></a>
           <div class="nav-collapse collapse">
+<?php if ($this->userName): ?>
             <ul class="nav">
-
-              <li class="active"><a href="<?= $this->base_url ?>/out.php"><?= e::h(msg('home')) ?></a></li>
+              <li id="nav-out"><a href="<?= $this->base_url ?>/out.php"><?= e::h(msg('home')) ?></a></li>
 <?php if ($this->can_checkin || $this->isadmin == 'yes'): ?>
-              <li><a href="<?= $this->base_url ?>/in.php"><?= e::h(msg('button_check_in')) ?></a></li>
+              <li id="nav-in"><a href="<?= $this->base_url ?>/in.php"><?= e::h(msg('button_check_in')) ?></a></li>
 <?php endif; ?>
-              <li><a href="<?= $this->base_url ?>/search.php"><?= e::h(msg('search')) ?></a></li>
+              <li id="nav-search"><a href="<?= $this->base_url ?>/search.php"><?= e::h(msg('search')) ?></a></li>
 <?php if ($this->can_add || $this->isadmin == 'yes'): ?>
-              <li><a href="<?= $this->base_url ?>/add.php"><?= e::h(msg('button_add_document')) ?></a></li>
+              <li id="nav-add"><a href="<?= $this->base_url ?>/add.php"><?= e::h(msg('button_add_document')) ?></a></li>
 <?php endif; ?>
 <?php if ($this->isadmin == 'yes'): ?>
-              <li><a href="<?= $this->base_url ?>/admin.php"><?= e::h(msg('label_admin')) ?></a></li>
+              <li id="nav-admin"><a href="<?= $this->base_url ?>/admin.php"><?= e::h(msg('label_admin')) ?></a></li>
 <?php endif; ?>
-              <li><a href="<?= $this->base_url ?>/logout.php"><?= e::h(msg('logout')) ?></a></li>
+              <li id="nav-logout"><a href="<?= $this->base_url ?>/logout.php"><?= e::h(msg('logout')) ?></a></li>
             </ul>
             <p class="navbar-text pull-right">
               <?= e::h(msg('label_logged_in_as')) ?>
               <a href="<?= $this->base_url ?>/profile.php"><?= $this->userName ?></a>
             </p>
+<?php endif; ?>
           </div><!--/.nav-collapse -->
         </div>
       </div>
 
     </div>
 <?php if ($GLOBALS['CONFIG']['demo'] == 'True'): ?>
-    <h1>Demo resets once per hour</h1>
+    <h1><?= e::h(msg('message_demo_resets')) ?></h1>
 <?php endif; ?>
       <div class="container">
         <div class="row">
-            <div class="span4">
-                You are here: <?= $this->breadCrumb ?>
-            </div>
+            <div>You are here: <?= $this->breadCrumb ?></div>
         </div>
         <p></p>
 <?php if ($this->lastmessage != ''): ?>

@@ -72,7 +72,7 @@ $result = $stmt->fetchAll();
 // how many records?
 $count = $stmt->rowCount();
 if ($count == 0) { ?>
-        <p><img src="images/exclamation.gif" /><?= msg('message_no_documents_checked_out') ?></p>
+        <p><img src="images/exclamation.gif" /> <?= msg('message_no_documents_checked_out') ?></p>
 <?php } else { ?>
         <table id="filesout">
             <caption><?= msg('message_document_checked_out_to_you') ?>: <?= e::h($count) ?></caption>
@@ -108,7 +108,7 @@ if ($count == 0) { ?>
                 <tr>
                     <td class="listtable">
                         <div class="buttons">
-                            <a class="regular" href="check-in.php?id=<?= e::h($id) . '&amp;state=<?= e::h(($_REQUEST['state']+1)) ?>">
+                            <a class="regular" href="check-in.php?id=<?= e::h($id) . '&amp;state=' . e::h(($_REQUEST['state']+1)) ?>">
                                 <img src="images/import-2.png" width="32" height="32" alt="checkin" /> <?= msg('button_check_in') ?>
                             </a>
                         </div>

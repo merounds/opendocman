@@ -7,18 +7,13 @@
             <tbody>
                 <tr>
                     <td><?= e::h(msg('userpage_are_sure')) ?> <?= e::h($this->full_name[0]) ?> <?= e::h($this->full_name[1]) ?>?</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td><!-- buttons --></td>
                     <td>
                         <div class="buttons">
-                            <button class="positive" type="Submit" name="submit" value="Delete User"><?= e::h(msg('userpage_button_delete')) ?></button>
-                            <button class="negative" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('userpage_button_cancel')) ?></button>
+                            <button class="positive" type="Submit" name="submit" value="Delete User"><?= e::h(msg('button_delete')) ?></button>
+                            <button class="negative" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('button_cancel')) ?></button>
                         </div>
                     </td>
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
         </form>

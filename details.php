@@ -46,9 +46,11 @@ $full_requestId = $_GET['id'];
 
 if (strchr($_GET['id'], '_')) {
     list($_GET['id'], $revision_id) = explode('_', $_GET['id']);
+    // not used...
     $pageTitle = msg('area_file_details') . ' ' . msg('revision') . ' #' . $revision_id;
     $file_size = display_filesize($GLOBALS['CONFIG']['revisionDir'] . $_GET['id'] . '/' . $_GET['id'] . '_' . $revision_id . '.dat');
 } else {
+    // not used...
     $pageTitle = msg('area_file_details');
 }
 
@@ -65,15 +67,16 @@ $user_perms_obj = new User_Perms($_SESSION['uid'], $pdo);
 $user_permission_obj = new UserPermission($_SESSION['uid'], $pdo);
 $user_obj = new User($file_data_obj->getOwner(), $pdo);
 
-$owner_full_name = $file_data_obj->getOwnerFullName();
 
 // display details
-$owner_id = $file_data_obj->getOwner();
-$category = $file_data_obj->getCategoryName();
-$owner_last_first = $owner_full_name[1] . ', ' . $owner_full_name[0];
-$owner_first_last = $owner_full_name[0] . ' ' . $owner_full_name[1];
+
+$owner_id = $file_data_obj->getOwner();     // not used...
 $real_name = $file_data_obj->getName();
+$category = $file_data_obj->getCategoryName();
 $created = $file_data_obj->getCreatedDate();
+$owner_name_array = $file_data_obj->getOwnerFullName();
+$owner_last_first = $owner_name_array[1] . ', ' . $owner_name_array[0];
+$owner_first_last = $owner_name_array[0] . ' ' . $owner_name_array[1];
 $description = $file_data_obj->getDescription();
 $comment = $file_data_obj->getComment();
 $status = $file_data_obj->getStatus();
@@ -110,7 +113,6 @@ if ($file_data_obj->isArchived()) {
     $file_size = display_filesize($filename);
 } else {
     $filename = $GLOBALS['CONFIG']['dataDir'] . $request_id . '.dat';
-
     if (!isset($file_size)) {
         $file_size = display_filesize($filename);
     }
@@ -176,11 +178,11 @@ if (!empty($revision_id)) {
 $rows = $stmt->rowCount();
 
 if ($rows == 1 && !(isset($revision_id))) {
-    $revision = "1";
+    $revision_value = "1";
 } elseif (isset($revision_id)) {
-    $revision = $revision_id + 1;
+    $revision_value = $revision_id + 1;
 } else {
-    $revision = "$rows";
+    $revision_value = "$rows";
 }
 
 $file_under_review = (($file_data_obj->isPublishable() == -1) ? true : false);
@@ -190,24 +192,24 @@ $subject_value = (isset($reviewer_comments_fields[1]) ? (substr($reviewer_commen
 $comments_value = (isset($reviewer_comments_fields[2]) ? (substr($reviewer_comments_fields[2], 9)) : '');
 
 $file_detail_array = array(
-    'file_unlocked' => $file_unlocked,
-    'to_value' => $to_value,
-    'subject_value' => $subject_value,
-    'comments_value' => $comments_value,
-    'realname' => $real_name,
-    'category' => $category,
-    'filesize' => $file_size,
-    'created' => fix_date($created),
-    'owner_email' => $user_obj->getEmailAddress(),
-    'owner' => $owner_last_first,
-    'owner_fullname' => $owner_first_last,
-    'description' => wordwrap($description, 50, '<br />'),
-    'comment' => wordwrap($comment, 50, '<br />'),
+    'file_unlocked'       => $file_unlocked,
+    'to_value'            => $to_value,
+    'subject_value'       => $subject_value,
+    'comments_value'      => $comments_value,
+    'realname'            => $real_name,
+    'category'            => $category,
+    'filesize'            => $file_size,
+    'created'             => fix_date($created),
+    'owner_email'         => $user_obj->getEmailAddress(),
+    'owner'               => $owner_last_first,
+    'owner_fullname'      => $owner_first_last,
+    'description'         => wordwrap($description, 50, '<br />'),
+    'comment'             => wordwrap($comment, 50, '<br />'),
     'udf_details_display' => udf_details_display($request_id),
-    'revision' => $revision,
-    'file_under_review' => $file_under_review,
-    'reviewer' => $reviewer,
-    'status' => $status
+    'revision'            => $revision_value,
+    'file_under_review'   => $file_under_review,
+    'reviewer'            => $reviewer,
+    'status'              => $status
 );
 
 $view->setData([
@@ -225,7 +227,7 @@ if ($status > 0) {
 //    $GLOBALS['smarty']->assign('checkout_person_email', $checkout_person_obj->getEmailAddress());
 
     $view->addData([
-        'checkout_person_full_name' => $full_name,
+        'checkout_person_full_name' => $checkout_person_obj->getFullName(),
         'checkout_person_email' => $checkout_person_obj->getEmailAddress()
     ]);
 }
@@ -234,26 +236,25 @@ if ($status > 0) {
 if ($user_permission_obj->getAuthority($request_id, $file_data_obj) >= $user_permission_obj->READ_RIGHT) {
     $view_link = 'view_file.php?id=' . e::h($full_requestId) . '&state=' . ($state + 1);
 //    $GLOBALS['smarty']->assign('view_link', $view_link);
-
-    $view->addData([
-        'view_link' => $view_link
-    ]);
 }
+$view->addData([
+    'view_link' => isset($view_link) ? $view_link : ''
+]);
 
 // Lets figure out which buttons to show
 if ($status == 0 || ($status == -1 && $file_data_obj->isOwner($_SESSION['uid']))) {
     // check if user has modify rights
 
     $user_perms = new UserPermission($_SESSION['uid'], $GLOBALS['pdo']);
+// NOTE: above previously defined as $user_permission_obj (line 67)
     if ($user_perms->getAuthority($request_id, $file_data_obj) >= $user_perms->WRITE_RIGHT && !isset($revision_id) && !$file_data_obj->isArchived()) {
         // if so, display link for checkout
         $check_out_link = "check-out.php?id=$request_id" . '&state=' . ($state + 1) . '&access_right=modify';
 //        $GLOBALS['smarty']->assign('check_out_link', $check_out_link);
-
-        $view->addData([
-            'check_out_link' => $check_out_link
-        ]);
     }
+    $view->addData([
+        'check_out_link' => isset($check_out_link) ? $check_out_link : ''
+    ]);
 
 
     if ($user_permission_obj->getAuthority($request_id, $file_data_obj) >= $user_permission_obj->ADMIN_RIGHT && !@isset($revision_id) && !$file_data_obj->isArchived()) {
@@ -261,11 +262,10 @@ if ($status == 0 || ($status == -1 && $file_data_obj->isOwner($_SESSION['uid']))
         // additional actions are available
         $edit_link = "edit.php?id=$request_id&state=" . ($state + 1);
 //        $GLOBALS['smarty']->assign('edit_link', $edit_link);
-
-        $view->addData([
-            'edit_link' => $edit_link
-        ]);
     }
+    $view->addData([
+        'edit_link' => isset($edit_link) ? $edit_link : ''
+    ]);
 }
 
 ////end if ($status == 0)

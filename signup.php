@@ -2,7 +2,7 @@
 use Aura\Html\Escaper as e;
 
 /*
-add.php - adds files to the repository
+signup.php - allow user to create their own account
 Copyright (C) 2002-2007 Stephen Lawrence Jr., Jon Miner
 Copyright (C) 2008-2014 Stephen Lawrence Jr.
 
@@ -21,10 +21,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-
-// You can add signup_header.html and signup_footer.html files to display on this page automatically
-
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
+
+view_header(msg('area_add_new_user'), '');
+
 if ($GLOBALS['CONFIG']['allow_signup'] == 'True') {
 
     // Submitted so insert data now
@@ -44,8 +47,8 @@ if ($GLOBALS['CONFIG']['allow_signup'] == 'True') {
 
         // If the above statement returns more than 0 rows, the user exists, so display error
         if ($stmt->rowCount() > 0) {
-            echo msg('message_user_exists');
-            exit;
+            echo '<p>' . msg('message_user_exists') . '</p>';
+            echo '<p>' . msg('please') . ' <a href="signup.php">' . msg('message_try_again') . '</a>.</p>';
         } else {
             $phonenumber = (!empty($_REQUEST['phonenumber']) ? $_REQUEST['phonenumber'] : '');
             // INSERT into user
@@ -85,67 +88,19 @@ if ($GLOBALS['CONFIG']['allow_signup'] == 'True') {
             $userid = $pdo->lastInsertId();
 
             // mail user telling him/her that his/her account has been created.
-            echo msg ('message_account_created') . ' ' . $_POST['username'].'<br />';
+            echo '<p>' . msg('message_account_created') . '</p>';
+            echo '<p>' . msg('label_username') . ': ' . $_POST['username'] . '</p>';
             if($GLOBALS['CONFIG']['authen'] == 'mysql')
             {
-                echo msg('message_account_created_password') . ': '. e::h($_REQUEST['password']) . PHP_EOL . PHP_EOL;
-                echo '<br><a href="' . $GLOBALS['CONFIG']['base_url'] . '">' . msg('login'). '</a>';
-                exit;
+                echo '<p>' . msg('message_account_created_password') . ': ' . e::h($_REQUEST['password']) . '</p>' . PHP_EOL . PHP_EOL;
+                echo '<p><a href="' . $GLOBALS['CONFIG']['base_url'] . '">' . msg('login') . '</a></p>';
             }
         }
-    }
-    ?>
-        <html>
-        <head><title>Sign Up</title></head>
-        <body>
-<?php
-    if (is_readable("signup_header.html")) {
-        include("signup_header.html");
-    }
-    ?>
-                
-            <font size=6>Sign Up</font>
-        <br><script type="text/javascript" src="FormCheck.js"></script>
+    } else {
+        // Not submitted so show form
+        $mysql_auth = $GLOBALS["CONFIG"]["authen"] == 'mysql';
+        $rand_password = makeRandomPassword();
 
-
-        <table border="0" cellspacing="5" cellpadding="5">
-        <form name="add_user" action="signup.php" method="POST" enctype="multipart/form-data">
-        <tr><td><b><?php echo msg('label_last_name');
-    ?></b></td><td><input name="last_name" type="text"></td></tr>
-        <tr><td><b><?php echo msg('label_first_name');
-    ?></b></td><td><input name="first_name" type="text"></td></tr>
-        <tr><td><b><?php echo msg('username');
-    ?></b></td><td><input name="username" type="text"></td></tr>
-        <tr>
-        <td><b>Phone Number</b></td>
-        <td>
-        <input name="phonenumber" type="text">
-        </td>
-        </tr>
-        <tr>
-        <td><b>Example</b></td>
-        <td><b>999 9999999</b></td>
-        </tr>
-        <tr>
-        <td><b>E-mail Address</b></td>
-        <td>
-        <input name="Email" type="text">
-        </td>
-        </tr>
-        <tr>
-        <?php
-        // If mysqlauthentication, then ask for password
-        if ($GLOBALS['CONFIG']['authen'] =='mysql') {
-            $rand_password = makeRandomPassword();
-            echo '<INPUT type="hidden" name="password" value="' . $rand_password . '">';
-        }
-    ?>
-
-        <tr>
-        <td><b>Department</b></td>
-        <td>
-        <select name="department">
-        <?php	
         // query to get a list of departments
         $query = "
           SELECT
@@ -156,33 +111,20 @@ if ($GLOBALS['CONFIG']['allow_signup'] == 'True') {
           ORDER BY
             name
         ";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute();
-    $result = $stmt->fetchAll();
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $department_list = $stmt->fetchAll();
 
-    foreach ($result as $row) {
-        echo '<option value=' . e::h($row['id']) . '>' . e::h($row['name']) . '</option>';
+        $view->setData([
+            'mysql_auth'      => $mysql_auth,
+            'rand_password'   => $rand_password,
+            'department_list' => $department_list
+        ]);
+        $view->setView('signup');
+        echo $view->__invoke();
     }
-
-    ?>
-        </select>
-        </td>
-        <tr>
-        <td></td>
-        <td columnspan=3 align="center"><input type="Submit" name="adduser" onClick="return validatemod(add_user);" value="<?php echo msg('submit');
-    ?>">
-        </form>
-        </td>
-        </tr>
-        </table>
-<?php
-   if (is_readable("signup_footer.html")) {
-       include("signup_footer.html");
-   }
-    ?>
-
-        </body>
-        </html>
-        <?php
-
+} else {
+    echo "<p>" . msg('message_sorry_not_allowed') . "</p>";
 }
+
+view_footer();

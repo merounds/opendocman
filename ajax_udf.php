@@ -1,6 +1,9 @@
 <?php
 use Aura\Html\Escaper as e;
-/* 
+/*
+ajax_udf.php - update UDF sub-select field options
+             - output of this is inserted as innerHTML
+               of #txtHint in udf_edit.php template
 Copyright (C) 2014 Stephen Lawrence Jr.
 
 This program is free software; you can redistribute it and/or
@@ -34,22 +37,18 @@ if (isset($_GET['add_value'])) {
 if (isset($_GET['table'])) {
     $table_name = $_GET['table'];
 }
-?>
-    <table border="0">
-        <tr>
-<?php
 
-        
-// Find out if the passed argument matches an actual tablename 
+echo '<!-- start ajax -->';
+
+// Find out if the passed argument matches an actual tablename
 $udf_table_names = "SELECT table_name FROM {$GLOBALS['CONFIG']['db_prefix']}udf";
 $stmt = $pdo->prepare($udf_table_names);
 $stmt->execute();
 $udf_tables_names_result = $stmt->fetchAll();
 
+// called from showdivs()
 if ($q != "" && $add_value != "add" && $add_value != "edit") {
-    ?>
-            <td>
-<?php
+
     $explode_add_value = explode('_', $add_value);
     if (isset($explode_add_value[2])) {
         $field_name = $explode_add_value[2];
@@ -64,21 +63,27 @@ if ($q != "" && $add_value != "add" && $add_value != "edit") {
             }
         }
         reset($udf_tables_names_result);
-        
+
         if ($white_listed) {
             $stmt = $pdo->prepare("SELECT * FROM $add_value");
             $stmt->execute();
             $result = $stmt->fetchAll();
 
             if ($result && $q != 'primary') {
-                echo '<table>';
-                echo '<tr><th style="padding-left:39px;">' . msg('label_primary_type') . ':</th><td><select name=primary_type class="required" onchange="showdivs(this.value,\'' . e::h($add_value) . '\')">';
-                echo '<option value="0">Please select one</option>';
-                foreach ($result as $row) {
-                    echo '<option value=' . e::h($row[0]) . ' ' . ($row[0] == $q ? "selected" : "") . '>' . e::h($row[1]) . '</option>'; //CHM
-                }
-                echo '</select></td></tr>';
-                echo '</table>';
+                // show primary select options
+?>
+                <tr>
+                    <td><label for="udfpri"><?= msg('label_primary_type') ?>: </label></td>
+                    <td>
+                        <select id="udfpri" class="required" name="primary_type" onchange="showdivs(this.value,'<?= e::h($add_value) ?>')">
+                            <option value="0"><?= msg('label_select_one') ?></option>
+<?php foreach ($result as $row): ?>
+                            <option value="<?= e::h($row[0]) ?>" <?= ($row[0] == $q ? "selected" : "") ?>><?= e::h($row[1]) ?></option>
+<?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+<?php
             }
 
             if ($q == 'secondary') {
@@ -88,15 +93,15 @@ if ($q != "" && $add_value != "add" && $add_value != "edit") {
             } else {
                 $table_name = '_secondary WHERE pr_id = "' . e::h($q) . '"';
             }
-
-            echo '<table>';
-            echo '<tr bgcolor="83a9f7">
-                  <th>' . msg('button_delete') . '?</th>
-                  <th>' . msg('value') . '</th>
-                  </tr>';
-
+?>
+                <tr><td colspan="2"><hr /></td></tr>
+                <tr class="header">
+                    <th><?= e::h(msg('label_delete')) ?>? </th>
+                    <th><?= e::h(msg('value')) ?></th>
+                </tr>
+<?php
             if ((((int) $q == $q && (int) $q > 0) || $q == 'primary')) {
-                // Find out if the passed argument matches an actual tablename 
+                // Find out if the passed argument matches an actual tablename
 
                 $full_table_name = $GLOBALS['CONFIG']['db_prefix'] . 'udftbl_' . $field_name . $table_name;
                 $white_listed = false;
@@ -105,44 +110,27 @@ if ($q != "" && $add_value != "add" && $add_value != "edit") {
                         $white_listed = true;
                     }
                 }
+                // should this be $white_listed? Because $white_list will evaluate to true after looping
                 if ($white_list) {
                     $stmt = $pdo->prepare("SELECT * FROM $full_table_name");
                     $stmt->execute();
                     $result = $stmt->fetchAll();
                     foreach ($result as $row) {
-                        if (isset($bg) && $bg == "FCFCFC") {
-                            $bg = "E3E7F9";
-                        } else {
-                            $bg = "FCFCFC";
-                        }
-                        echo '<tr bgcolor="' . $bg . '">
-                                    <td align=center><input type=checkbox name=x' . e::h($row[0]) . '></td>
-                                        <td>' . e::h($row[1]) . '</td>
-                                  </tr>';
+                        // show existing options
+?>
+                <tr class="show">
+                    <td><input id="c<?= e::h($row[0]) ?>" type="checkbox" name="x<?= e::h($row[0]) ?>" /></td>
+                    <td><label for="c<?= e::h($row[0]) ?>"><?= e::h($row[1]) ?></label></td>
+                </tr>
+<?php
                     }
                 }
             }
         }
-
-
-        echo '<tr>
-                            <th align=right>' . msg('new') . ':</th>
-                            <td><input type=textbox maxlength="16" name="newvalue"></td>
-                          </tr>';
-        echo '<tr><td colspan="2">';
-        echo '<div class="buttons">
-                            <button class="positive" type="submit" value="Update">' . msg('button_update') . '</button>';
-        ?>
-                            <button class="negative" type="Submit" name="cancel" value="Cancel"><?php echo msg('button_cancel')?></button>
-                          </div>
-                        </td>
-                        </tr>
-                        </table>
-<?php 
-    draw_footer();
     }
 }
 
+// called from showdropdowns()
 if ($add_value == "add") {
     $add_table_name = $GLOBALS['CONFIG']['db_prefix'] . 'udftbl_' . $table_name . '_secondary';
 
@@ -152,40 +140,53 @@ if ($add_value == "add") {
             $white_listed = true;
         }
     }
+    // should this be $white_listed? Because $white_list will evaluate to true after looping
     if ($white_list) {
-        $stmt = $pdo->prepare("SELECT * FROM $add_table_name WHERE pr_id = :q");
-        $stmt->execute(array(':q' => $q));
-        $result = $stmt->fetchAll();
+        if ($q > 0) {
+            $stmt = $pdo->prepare("SELECT * FROM $add_table_name WHERE pr_id = :q");
+            $stmt->execute(array(':q' => $q));
+            $result = $stmt->fetchAll();
 
-        echo '<select id="' . e::h($GLOBALS['CONFIG']['db_prefix']) . 'udftbl_' . e::h($table_name) . '_secondary" name="' . e::h($GLOBALS['CONFIG']['db_prefix']) . 'udftbl_' . e::h($table_name) . '_secondary">';
-        foreach ($result as $subrow) {
-            echo '<option value="' . e::h($subrow[0]) . '">' . e::h($subrow[1]) . '</option>';
+            echo "<!-- showdropdowns(add) q = $q -->";
+            echo '<select id="' . e::h($add_table_name) . '" name="' . e::h($add_table_name) . '">';
+            foreach ($result as $subrow) {
+                echo '<option value="' . e::h($subrow[0]) . '">' . e::h($subrow[1]) . '</option>';
+            }
+            echo '</select>';
+        } else {
+            echo e::h(msg('label_secondary_items_here'));
         }
-        echo '</select>';
     }
 }
 
+// identical functionallity to $add_value == "add" above, just uses different variable names.
+// called from showdropdowns()
 if ($add_value == "edit") {
     $edit_tablename = $GLOBALS['CONFIG']['db_prefix'] . 'udftbl_' . $table_name . '_secondary';
+
     $white_listed = false;
     foreach ($udf_tables_names_result as $white_list) {
         if ($edit_tablename == $white_list['table_name']) {
             $white_listed = true;
         }
     }
+    // should this be $white_listed? Because $white_list will evaluate to true after looping
     if ($white_list) {
-        $stmt = $pdo->prepare("Select * FROM $edit_tablename WHERE pr_id = :q");
-        $stmt->execute(array(':q' => $q));
-        $result = $stmt->fetchAll();
+        if ($q > 0) {
+            $stmt = $pdo->prepare("Select * FROM $edit_tablename WHERE pr_id = :q");
+            $stmt->execute(array(':q' => $q));
+            $result = $stmt->fetchAll();
 
-        echo '<select id="' . e::h($GLOBALS['CONFIG']['db_prefix']) . 'udftbl_' . e::h($table_name) . '_secondary" name="' . e::h($GLOBALS['CONFIG']['db_prefix']) . 'udftbl_' . e::h($table_name) . '_secondary">';
-        foreach ($result as $subrow) {
-            echo '<option value="' . e::h($subrow[0]) . '">' . e::h($subrow[1]) . '</option>';
+            echo "<!-- showdropdowns(edit) q = $q -->";
+            echo '<select id="' . e::h($edit_tablename) . '" name="' . e::h($edit_tablename) . '">';
+            foreach ($result as $subrow) {
+                echo '<option value="' . e::h($subrow[0]) . '">' . e::h($subrow[1]) . '</option>';
+            }
+            echo '</select>';
+        } else {
+            echo e::h(msg('label_secondary_items_here'));
         }
-        echo '</select>';
     }
 }
-        ?>
-                    
-    </tr>
-</table>
+?>
+<!-- end ajax -->

@@ -99,6 +99,7 @@ $lang['area_view_history'] = 'History';
 $lang['button_add_category'] = 'Add Category';
 $lang['button_add_department'] = 'Add Department';
 $lang['button_add_document'] = 'Add Document';
+$lang['button_add_user'] = 'Add User';  // renamed from 'userpage_button_add_user' issue 243
 $lang['button_authorize'] = 'Authorize';
 $lang['button_back'] = 'Back';
 $lang['button_cancel'] = 'Cancel';
@@ -195,6 +196,7 @@ $lang['label_id'] = 'ID';
 $lang['label_is_admin'] = 'Is Admin';
 $lang['label_is_reviewer'] = 'Is Reviewer';
 $lang['label_last_name'] = 'Last Name';
+$lang['label_limit'] = 'limit 5 characters';       // === Added issue 243
 $lang['label_logged_in_as'] = 'Logged in as';
 $lang['label_moderation'] = 'Moderation';
 $lang['label_modified_date'] = 'Modified Date';
@@ -207,6 +209,7 @@ $lang['label_page'] = 'Page';
 $lang['label_phone_number'] = 'Phone Number';
 $lang['label_plugins'] = 'Plug-Ins';
 $lang['label_prev'] = 'Previous';
+$lang['label_primary_items'] = 'Primary Items';  // Added issue 243
 $lang['label_radio_button'] = 'Radio Button';
 $lang['label_read'] = 'Read';
 $lang['label_reassign_to'] = 'Re-assign To';
@@ -218,6 +221,8 @@ $lang['label_reviews'] = 'Reviews';
 $lang['label_rights'] = 'Rights';
 $lang['label_run_expiration'] = 'Run Expiration Utility';
 $lang['label_search_term'] = 'Search term';
+$lang['label_secondary_items'] = 'Secondary Items';  // Added issue 243
+$lang['label_secondary_items_here'] = 'Secondary items will show up here.';  // Added issue 243
 $lang['label_select_a_department'] = 'Select a department';
 $lang['label_select_departments'] = 'Select departments';
 $lang['label_select_one'] = 'Select one';
@@ -229,6 +234,7 @@ $lang['label_text'] = 'Text';
 $lang['label_update'] = 'Update';
 $lang['label_user_defined_fields'] = 'User Defined Fields';
 $lang['label_user_defined_field'] = 'User Defined Field';
+//$lang['label_users_in_department'] = 'Users in this department';  // changed to 'departmentpage_users_in_department' issue 243
 $lang['label_user'] = 'User';
 $lang['label_view'] = 'View';
 $lang['label_userid'] = 'User ID';
@@ -259,6 +265,7 @@ $lang['message_current'] = 'Current';
 $lang['message_datadir_problem'] = 'There is a problem with your dataDir. Check to make sure it exists and is writable';
 $lang['message_datadir_problem_exists'] = 'There is a problem with your dataDir setting. It does not appear to exist.';
 $lang['message_datadir_problem_writable'] = 'There is a problem with your dataDir setting. It does not appear to be writable to the web server.';
+$lang['message_demo_resets'] = 'Demo resets once per hour';  // === Added issue 243
 $lang['message_department_successfully_added'] = 'Department successfully added';
 $lang['message_department_successfully_updated'] = 'Department successfully updated';
 $lang['message_directory_creation_failed'] = 'Directory Creation Failed';
@@ -281,7 +288,7 @@ $lang['message_for_further_assistance'] = 'for further assistance';
 $lang['message_found_documents'] = 'found document(s)';
 $lang['message_if_you_are_unable_to_view1'] = 'If you are not able to do so for some reason, click ';
 $lang['message_if_you_are_unable_to_view2'] = 'Download';
-$lang['message_if_you_are_unable_to_view3'] = 'to begin downloading it to your local workstation for local view.';
+$lang['message_if_you_are_unable_to_view3'] = 'to begin downloading it to your local workstation for local view.';  // === removed html issue 243
 $lang['message_initial_import'] = 'Initial Import';
 $lang['message_last_message'] = 'Last Message';
 $lang['message_latest_version'] = 'Latest version';
@@ -297,7 +304,7 @@ $lang['message_non_unique_key'] = 'Non-Unique key in database.';
 $lang['message_nothing_to_do'] = 'Nothing to do';
 $lang['message_not_writable'] = 'Not Writable!';
 //$lang['message_once_the_document_has_completed'] = 'Once the document has completed downloading, you may';
-$lang['message_once_the_document_has_completed'] = 'Click continue once the document has completed downloading';
+$lang['message_once_the_document_has_completed'] = 'Click continue once the document has completed downloading';  // === revised issue 243
 $lang['message_original_version'] = 'Original version';
 $lang['message_please_email'] = 'Please email';
 $lang['message_please_upload_valid_doc'] = 'Please upload a valid document';
@@ -323,12 +330,16 @@ $lang['message_this_operation_cannot_be_done_rev'] = 'This operation cannot be d
 $lang['message_this_page_requires_root'] = 'This page requires root level permission';
 $lang['message_this_site_has_high_security'] = 'This site has a high level of security and we cannot retrieve your password for you.  You can use this form to reset your password.  Enter your username and we will send an email to the email address on file with a link that you must follow to reset your password.  At that point you may set it to anything you wish.';
 $lang['message_to_view_your_file'] = 'To view your file in a new window';
+$lang['message_try_again'] = 'try again'; // === Added issue 243
 $lang['message_udf_cannot_be_blank'] = 'The UDF name cannot be blank';
+$lang['message_udf_no_edit_options'] = 'No edit options for this UDF type'; // === Added issue 243
+$lang['message_udf_none_to_delete'] = 'There is no User Defined Field to delete'; // === Added issue 243
 $lang['message_udf_successfully_added'] = 'User defined field successfully added';
 $lang['message_udf_successfully_deleted'] = 'User defined field successfully deleted';
 $lang['message_unable_to_determine_root'] = 'Unable to determine the root username. Please check your configuration.';
 $lang['message_unable_to_find_file'] = 'Unable to find the requested file';
-$lang['message_user_exists'] = 'That user already exists. Please <a href=\'signup.php\'>try again</a>';
+//$lang['message_user_exists'] = 'That user already exists. Please <a href=\'signup.php\'>try again</a>';
+$lang['message_user_exists'] = 'That user already exists.';  // === revised to remove html issue 243
 $lang['message_user_successfully_added'] = 'User successfully added';
 $lang['message_user_successfully_deleted'] = 'User successfully deleted';
 $lang['message_user_successfully_updated'] = 'User successfully updated';
@@ -381,8 +392,8 @@ $lang['undeletepage_file_undeleted'] = 'The file has been un-deleted';
 
 // Departments Page
 $lang['departmentpage_department_name_required'] = 'A department name is required';
-$lang['departmentpage_no_users_in_department'] = 'No users in this department';
-$lang['departmentpage_users_in_department'] = 'Users in this department';
+$lang['departmentpage_no_users_in_department'] = 'No users in this department';  // === Added issue 243
+$lang['departmentpage_users_in_department'] = 'Users in this department';  // === renamed issue 243
 
 // Details Page
 $lang['detailspage_view'] = 'View';
@@ -405,13 +416,13 @@ $lang['category_option_category'] = 'File Category';
 $lang['category_option_default'] = 'Empty';
 
 // History Page
-$lang['historypage_category'] = 'Category:';
-$lang['historypage_file_size'] = 'File size:';
-$lang['historypage_creation_date'] = 'Creation date:';
-$lang['historypage_owner'] = 'Owner:';
-$lang['historypage_description'] = 'Description:';
-$lang['historypage_comment'] = 'Comment:';
-$lang['historypage_revision'] = 'Revision:';
+$lang['historypage_category'] = 'Category:';       // === Obsolete issue 243
+$lang['historypage_file_size'] = 'File size:';     // === Obsolete issue 243
+$lang['historypage_creation_date'] = 'Creation date:';//= Obsolete issue 243
+$lang['historypage_owner'] = 'Owner:';             // === Obsolete issue 243
+$lang['historypage_description'] = 'Description:'; // === Obsolete issue 243
+$lang['historypage_comment'] = 'Comment:';         // === Obsolete issue 243
+$lang['historypage_revision'] = 'Revision:';       // === Obsolete issue 243
 $lang['historypage_original_revision'] = 'Original revision';
 $lang['historypage_latest'] = 'Latest';
 $lang['historypage_history'] = 'History';
@@ -426,10 +437,10 @@ $lang['profilepage_update_profile'] = 'Update personal profile';
 // User Page
 $lang['userpage_admin'] = 'Admin';
 $lang['userpage_are_sure'] = 'Are you sure you want to delete ';
-$lang['userpage_back'] = 'Back';
-$lang['userpage_button_add_user'] = 'Add User';
-$lang['userpage_button_cancel'] = 'Cancel';
-$lang['userpage_button_delete'] = 'Delete';
+//$lang['userpage_back'] = 'Back';  // duplicate of 'button_back' issue 243
+//$lang['userpage_button_add_user'] = 'Add User';  // renamed to 'button_add_user' issue 243
+//$lang['userpage_button_cancel'] = 'Cancel';  // duplicate of 'button_cancel' issue 243
+//$lang['userpage_button_delete'] = 'Delete';  // duplicate of 'button_delete' issue 243
 $lang['userpage_button_modify'] = 'Modify User';
 $lang['userpage_button_show'] = 'Show User';
 $lang['userpage_button_update'] = 'Update User';
@@ -464,6 +475,7 @@ $lang['userpage_yes'] = 'Yes';
 $lang['adminpage_about_section_title'] = 'About';
 $lang['adminpage_about_section_app_version'] = 'App Version';
 $lang['adminpage_about_section_db_version'] = 'Database Version';
+$lang['adminpage_about_section_jquery_version'] = 'jQuery Version';  // === Added issue 243
 $lang['adminpage_edit_filetypes'] = 'Edit file types';
 $lang['adminpage_edit_settings'] = 'Edit settings';
 $lang['adminpage_reports'] = 'Reports';
@@ -487,7 +499,7 @@ $lang['accesslogpage_reserved'] = 'Reserved';
 $lang['checkinpage_file_was_checked_in'] = 'A file has been checked in.';
 
 //Category View Page
-$lang['categoryviewpage_list_of_files_none'] = 'No files are assigned to this category.';
+$lang['categoryviewpage_list_of_files_none'] = 'No files are assigned to this category.';  // === Added issue 243
 $lang['categoryviewpage_list_of_files_title'] = 'Files assigned to this category:';
 
 //Search Page

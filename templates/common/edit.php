@@ -55,7 +55,7 @@
                     </td>
                 </tr>
 
-                <?= e::h($this->udf_edit_form); ?>
+                <?= $this->udf_edit_form ?>
 
                 <!-- Set Department rights on the file -->
                 <tr id="departmentSelect">

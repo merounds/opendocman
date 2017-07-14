@@ -16,12 +16,12 @@
                     </td>
                     <td>
                         <div class="buttons">
-                            <button class="positive" type="Submit" name="submit" value="Delete"><?= e::h(msg('userpage_button_delete')) ?></button>
+                            <button class="positive" type="Submit" name="submit" value="Delete"><?= e::h(msg('button_delete')) ?></button>
                         </div>
                     </td>
                     <td>
                         <div class="buttons">
-                            <button class="negative" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('userpage_button_cancel')) ?></button>
+                            <button class="negative" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('button_cancel')) ?></button>
                         </div>
                     </td>
                 </tr>

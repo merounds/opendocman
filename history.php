@@ -26,6 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 session_start();
 
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (!isset($_SESSION['uid'])) {
     redirect_visitor();
@@ -38,136 +41,131 @@ if (!isset($_REQUEST['id']) || $_REQUEST['id'] == '') {
     exit;
 }
 
-draw_header(msg('area_view_history'), $last_message);
+//draw_header(msg('area_view_history'), $last_message);
+view_header(msg('area_view_history'), $last_message);
+
 //revision parsing
 if (strchr($_REQUEST['id'], '_')) {
     list($_REQUEST['id'], $revision_id) = explode('_', $_REQUEST['id']);
 }
-$datafile = new FileData($_REQUEST['id'], $pdo);
+$file_data_obj = new FileData($_REQUEST['id'], $pdo);
+$user_obj = new User($file_data_obj->getOwner(), $pdo);
 // verify
-if ($datafile->getError() != null) {
+if ($file_data_obj->getError() != null) {
     header('Location:error.php?ec=2');
     exit;
 } else {
     // obtain data from resultset
 
-    $owner_full_name = $datafile->getOwnerFullName();
-    $owner = $owner_full_name[1].', '.$owner_full_name[0];
-    $real_name = $datafile->getRealName();
-    $category = $datafile->getCategoryName();
-    $created = $datafile->getCreatedDate();
-    $description = $datafile->getDescription();
-    $comments = $datafile->getComment();
-    $status = $datafile->getStatus();
+    $real_name = $file_data_obj->getRealName();
+    $category = $file_data_obj->getCategoryName();
+    $created = $file_data_obj->getCreatedDate();
+    $owner_name_array = $file_data_obj->getOwnerFullName();
+    $owner_last_first = $owner_name_array[1] . ', ' . $owner_name_array[0];
+    $owner_first_last = $owner_name_array[0] . ' ' . $owner_name_array[1];
+    $description = $file_data_obj->getDescription();
+    $comment = $file_data_obj->getComment();
+    $status = $file_data_obj->getStatus();
+    $reviewer = $file_data_obj->getReviewerName();
     $id = $_REQUEST['id'];
 
-// corrections
-if ($description == '') {
-    $description = msg('message_no_description_available');
-}
-    if ($comments == '') {
-        $comments = msg('message_no_author_comments_available');
+    // corrections
+    if ($description == '') {
+        $description = msg('message_no_description_available');
     }
-    if ($datafile->isArchived()) {
+    if ($comment == '') {
+        $comment = msg('message_no_author_comments_available');
+    }
+    if ($file_data_obj->isArchived()) {
         $filename = $GLOBALS['CONFIG']['archiveDir'] . e::h($id) . '.dat';
     } else {
         $filename = $GLOBALS['CONFIG']['dataDir'] . e::h($id) . '.dat';
     }
-    ?>
-<table border="0" width=80% cellspacing="4" cellpadding="1">
-
-<tr>
-<td align="right">
-<?php
-// check file status, display appropriate icon
-if ($status == 0) {
-    echo '<img src="images/file_unlocked.png" alt="" border=0 align="absmiddle">';
-} else {
-    echo '<img src="images/file_locked.png"  alt="" border=0 align="absmiddle">';
-}
-    echo '</td>';
-    echo '<td align="left"><font size="+1">'. e::h($real_name) .'</font></td>';
-    ?>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_category');
-    ?></th><td><?php echo e::h($category);
-    ?></td>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_file_size');
-    ?></th><td> <?php echo display_filesize($filename);
-    ?></td>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_creation_date');
-    ?></th><td> <?php echo fix_date($created);
-    ?></td>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_owner');
-    ?></th><td> <?php echo e::h($owner);
-    ?></td>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_description');
-    ?></th><td> <?php echo e::h($description);
-    ?></td>
-</tr>
-
-<tr>
-<th valign=top align=right><?php echo msg('historypage_comment');
-    ?></th><td> <?php echo e::h($comments);
-    ?></td>
-</tr>
-<tr>
-<th valign=top align=right><?php echo msg('historypage_revision');
-    ?></th><td>
-    <div id="revision_current">
-<?php
-if (isset($revision_id)) {
-    if ($revision_id == 0) {
-        echo msg('historypage_original_revision');
+    // display red or green icon depending on file status
+    if ($status == 0) {
+        $file_unlocked = true;
     } else {
-        echo $revision_id;
+        $file_unlocked = false;
     }
-} else {
-    echo msg('historypage_latest');
-}
-    ?>
-    </div>
-</td>
-</tr>
+    if (isset($revision_id)) {
+        if ($revision_id == 0) {
+            $revision_value = msg('historypage_original_revision');
+        } else {
+            $revision_value = $revision_id;
+        }
+    } else {
+        $revision_value = msg('historypage_latest');
+    }
 
-<!-- history table -->
-<tr>
-<td align="right">
-<img src="images/revision.png" width=40 height=40 alt="" border="0" align="absmiddle">
-</td>
-<td><?php echo msg('historypage_history');
-    ?></td>
-</td>
-</tr>
+    $file_under_review = (($file_data_obj->isPublishable() == -1) ? true : false);
 
-<tr>
-<td colspan="2" align="center">
-	<table border="0" cellspacing="5" cellpadding="5">
-	<tr bgcolor="#83a9f7">
-	<th><font size=-1><?php echo msg('historypage_version');
-    ?></font></th>
-	<th><font size=-1><?php echo msg('historypage_modification');
-    ?></font></th>
-	<th><font size=-1><?php echo msg('historypage_by');
-    ?></font></th>
-	<th><font size=-1><?php echo msg('historypage_note');
-    ?></font></th>
-	</tr>
-<?php
+    $reviewer_comments_str = $file_data_obj->getReviewerComments();
+    $reviewer_comments_fields = explode(';', $reviewer_comments_str);
+
+    for ($i = 0; $i < sizeof($reviewer_comments_fields); $i++) {
+        $reviewer_comments_fields[$i] = str_replace('"', '&quot;', $reviewer_comments_fields[$i]);
+        $reviewer_comments_fields[$i] = str_replace('\\', '', $reviewer_comments_fields[$i]);
+    }
+
+    // No To? Give them the default
+    if (isset($reviewer_comments_fields[0]) && strlen($reviewer_comments_fields[0]) <= strlen('To=')) {
+        $reviewer_comments_fields[0] = 'To=Author(s)';
+    }
+
+    // No subject? Give them the default
+    if (isset($reviewer_comments_fields[1]) && strlen($reviewer_comments_fields[1]) <= strlen('Subject=')) {
+        $reviewer_comments_fields[1] = 'Subject=Comments regarding the review for your documentation';
+    }
+
+    $to_value = (isset($reviewer_comments_fields[0]) ? (substr($reviewer_comments_fields[0], 3)) : '');
+    $subject_value = (isset($reviewer_comments_fields[1]) ? (substr($reviewer_comments_fields[1], 8)) : '');
+    $comments_value = (isset($reviewer_comments_fields[2]) ? (substr($reviewer_comments_fields[2], 9)) : '');
+
+
+    $file_detail_array = array(
+        'file_unlocked'       => $file_unlocked,
+        'realname'            => $real_name,
+        'category'            => $category,
+        'filesize'            => display_filesize($filename),
+        'created'             => fix_date($created),
+        'owner'               => $owner_last_first,
+        'description'         => wordwrap($description, 50, '<br />'),
+        'comment'             => wordwrap($comment, 50, '<br />'),
+        'udf_details_display' => udf_details_display($id),
+        'revision'            => $revision_value,
+        'file_under_review'   => $file_under_review,
+        'reviewer'            => $reviewer,
+        'status'              => $status,
+
+        'owner_fullname'      => $owner_first_last,
+        'owner_email'         => $user_obj->getEmailAddress(),
+        'to_value'            => $to_value,
+        'subject_value'       => $subject_value,
+        'comments_value'      => $comments_value
+    );
+
+    $view->setData([
+        'file_detail'    => $file_detail_array,
+        'view_link'      => '',
+        'check_out_link' => '',
+        'edit_link'      => '',
+        'history_link'   => ''
+    ]);
+
+    if ($status > 0) {
+        // status != 0 -> file checked out to another user.
+        // status = uid of the check-out person
+        // query to find out who...
+        $checkout_person_obj = $file_data_obj->getCheckerOBJ();
+        $view->addData([
+            'checkout_person_full_name' => $checkout_person_obj->getFullName(),
+            'checkout_person_email' => $checkout_person_obj->getEmailAddress()
+        ]);
+    }
+
+    $view->setView('details');
+    echo $view->__invoke();
+
     // query to obtain a list of modifications
 
     if (isset($revision_id)) {
@@ -175,20 +173,20 @@ if (isset($revision_id)) {
           SELECT
             u.last_name,
             uuser.first_name,
-			l.modified_on,
-			l.note,
-			l.revision
-		  FROM
-		    {$GLOBALS['CONFIG']['db_prefix']}log l,
-		    {$GLOBALS['CONFIG']['db_prefix']}user u
-		  WHERE
-		    l.id = :id
+            l.modified_on,
+            l.note,
+            l.revision
+          FROM
+            {$GLOBALS['CONFIG']['db_prefix']}log l,
+            {$GLOBALS['CONFIG']['db_prefix']}user u
+          WHERE
+            l.id = :id
           AND
             u.username = l.modified_by
-		  AND
-		    l.revision <= :revision_id
-		  ORDER BY
-		    l.modified_on DESC
+          AND
+            l.revision <= :revision_id
+          ORDER BY
+            l.modified_on DESC
         ";
         $stmt = $pdo->prepare($query);
         $stmt->execute(array(
@@ -201,14 +199,14 @@ if (isset($revision_id)) {
           SELECT
             u.last_name,
             u.first_name,
-			l.modified_on,
-			l.note,
-			l.revision
+            l.modified_on,
+            l.note,
+            l.revision
           FROM
             {$GLOBALS['CONFIG']['db_prefix']}log l,
-			{$GLOBALS['CONFIG']['db_prefix']}user u
-		  WHERE
-			l.id = :id
+            {$GLOBALS['CONFIG']['db_prefix']}user u
+          WHERE
+            l.id = :id
           AND
             u.username = l.modified_by
           ORDER BY
@@ -221,8 +219,9 @@ if (isset($revision_id)) {
         $result = $stmt->fetchAll();
     }
 
-
+    // not used...
     $current_revision = $stmt->rowCount();
+
     // iterate through resultset
     foreach ($result as $row) {
         $last_name = $row['last_name'];
@@ -231,41 +230,34 @@ if (isset($revision_id)) {
         $note = $row['note'];
         $revision = $row['revision'];
 
-        if (isset($bgcolor) && $bgcolor == "#FCFCFC") {
-            $bgcolor = "#E3E7F9";
-        } else {
-            $bgcolor = "#FCFCFC";
-        }
-
-        echo '<tr bgcolor=' . $bgcolor . '>';
-
         $extra_message = '';
         if (is_file($GLOBALS['CONFIG']['revisionDir'] . $id . '/' . $id . "_$revision.dat")) {
-            echo '<td align=center><font size="-1"> <a href="details.php?id=' . e::h($id) . '_' . e::h($revision) . '&state=' . (e::h($_REQUEST['state'])) . '"><div class="revision">' . e::h(($revision + 1)) . '</div></a>' . e::h($extra_message);
+            $version_link = 'details.php?id=' . e::h($id) . '_' . e::h($revision) . '&state=' . (e::h($_REQUEST['state']));
         } else {
-            echo '<td><font size="-1">' . e::h($revision) . e::h($extra_message);
+            $version_link = 'none';
         }
-        ?>
-                    </font></td>
-                    <td><font size="-1"><?php echo fix_date($modified_on);
-        ?></font></td>
-                    <td><font size="-1"><?php echo e::h($last_name) . ', ' . e::h($first_name);
-        ?></font></td>
-                    <td><font size="-1"><?php echo e::h($note);
-        ?></font></td>
-            </tr>
-<?php
 
+        $history_items = array(
+            'version_link'  => $version_link,
+            'version'       => ($revision + 1),
+            'revision'      => $revision,
+            'extra_message' => $extra_message,
+            'modified_date' => fix_date($modified_on),
+            'owner_name'    => $last_name . ', ' . $first_name,
+            'note'          => $note
+        );
+        $history_list[] = $history_items;
     }
-    // clean up
-?>
-	</table>
-</td>
-</tr>
 
-</table>
-<?php
-// Call the plugin API
-callPluginMethod('onAfterHistory', $datafile->getId());
-    draw_footer();
+    $view->setData([
+        'history_list_array' => $history_list
+    ]);
+    $view->setView('history');
+    echo $view->__invoke();
+
+    // Call the plugin API
+    callPluginMethod('onAfterHistory', $file_data_obj->getId());
+
+    //draw_footer();
+    view_footer();
 }

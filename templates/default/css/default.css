@@ -143,3 +143,50 @@ font-size: 13px;
 .even {
     background-color: #FCFCFC;
 }
+/* global */
+.left {
+	text-align: left;
+}
+.center {
+	text-align: center;
+}
+.right {
+	text-align: right;
+}
+/* used in header.php template */
+#mainmenu {
+	width: 100%;
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 0px;     /* cellspacing */
+}
+#mainmenu td {
+	padding: 0px;            /* cellpadding */
+}
+#sub-menu {
+	width: 100%;
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 0px;     /* cellspacing */
+}
+#sub-menu th {
+	width: 110px;
+	text-align: right;
+	vertical-align: top;
+}
+#sub-menu td {
+	min-width: 30px;
+	padding: 5px;            /* cellpadding */
+	vertical-align: middle;
+    background-color: #0000a0;
+}
+#sub-menu td#crumb {
+	width: 90%;
+}
+#sub-menu td#lmsg {
+	width: 25%;
+	font-size: x-small;
+}
+#sub-menu a.statusbar {
+	text-decoration: none;
+}

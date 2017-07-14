@@ -220,12 +220,11 @@ Below are some of the configurable options:
 
 * authorization [On, Off] - Turn file moderation on or off.
 
-
-* theme [default="default"] - which theme to use? Smarty-based
+* theme [default="tweeter"] - which theme to use? PHP-based
   themes are located in templates/ folder. Look at default for example.
   To add a new one just create a new theme folder in templates/ 
-  with header.tpl and footer.tpl files. Global variables are 
-  added to smarty as $g_VARIABLENAME.
+  with header.php and footer.php files. If creating your own stylesheet
+  is should be named the same as the theme in the css folder.
 
 * allow_signup - This option determines whether or not to display
   the "Signup" link on the login page to allow users to self-register.

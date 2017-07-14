@@ -4,7 +4,7 @@ use Aura\Html\Escaper as e;
 error.php - displays error messages based on error code $ec
 Copyright (C) 2002-2004  Stephen Lawrence, Khoa Nguyen
 Copyright (C) 2005-2011 Stephen Lawrence Jr.
- 
+
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2
@@ -22,10 +22,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // includes
 include('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 $last_message = (isset($_REQUEST['last_message']) ? e::h($_REQUEST['last_message']) : '');
 
-draw_header(msg('error'), $last_message);
+//draw_header(msg('error'), $last_message);
+view_header(msg('error'), $last_message);
 
 if (isset($_REQUEST['ec']) && intval($_REQUEST['ec']) >= 0) {
     switch ($_REQUEST['ec']) {
@@ -138,4 +142,5 @@ if (isset($_REQUEST['ec']) && intval($_REQUEST['ec']) >= 0) {
     }
     draw_error($message);
 }
-draw_footer();
+//draw_footer();
+view_footer();

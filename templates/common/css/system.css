@@ -67,7 +67,7 @@ label.error {
 #filehistory caption,
 #filehistory th,
 #filehistory td {
-	padding: 5px;
+	padding: 5px;            /* cellpadding */
 	font-size: 0.9em;
 }
 /* used in settings.php template */
@@ -134,7 +134,7 @@ label.error {
 	text-align: left;
 }
 #filesout tbody > tr:nth-child(odd) {
-	background-color: #FCFCFC;
+	background-color: #fcfcfc;
 }
 #filesout tbody > tr:nth-child(even) {
 	background-color: #E3E7F9;
@@ -206,6 +206,42 @@ label.error {
 	font-weight: bold;
 }
 #department_table .buttons {
+	padding: 5px;
+}
+/* used in udf.php templates */
+#udf_table {
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 4px;     /* cellspacing */
+}
+#udf_table tr.header {
+	background-color: #83a9f7;
+}
+#udf_table tr.header th {
+	text-align: center;
+}
+#udf_table tr.show:nth-child(odd) {
+	background-color: #fcfcfc;
+}
+#udf_table tr.show:nth-child(even) {
+	background-color: #e3e7f9;
+}
+#udf_table tr.show td:nth-child(1) {
+	text-align: center;
+}
+#udf_table th {
+	text-align: right;
+}
+#udf_table td {
+	padding: 1px;            /* cellpadding */
+}
+#udf_table td:nth-child(1) {
+	text-align: right;
+}
+#udf_table td:nth-child(1) label {
+	font-weight: bold;
+}
+#udf_table .buttons {
 	padding: 5px;
 }
 /* used in filetype*.php templates */

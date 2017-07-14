@@ -175,62 +175,24 @@ function view_header($pageTitle, $lastmessage = '')
     // Is the uid set?
     if ($uid != null) {
         $current_user_obj = new User($uid, $pdo);
-        $view->addData([
-            'userName'    => $current_user_obj->getName(),
-            'can_add'     => $current_user_obj->can_add,
-            'can_checkin' => $current_user_obj->can_checkin
-        ]);
+        $user_name    = $current_user_obj->getName();
+        $user_add     = $current_user_obj->can_add;
+        $user_checkin = $current_user_obj->can_checkin;
     }
+    $view->addData([
+        'userName'    => isset($user_name) ? $user_name : false,
+        'can_add'     => isset($user_add) ? $user_add : false,
+        'can_checkin' => isset($user_checkin) ? $user_checkin : false
+    ]);
 
     // Are they an Admin?
-    if ($uid != null && $current_user_obj->isAdmin()) {
-        $view->addData([
-            'isadmin' => 'yes'
-        ]);
-    }
+    $admin = ($uid != null && $current_user_obj->isAdmin()) ? 'yes' : 'no';
+    $view->addData([
+        'isadmin' => $admin
+    ]);
 
     $view->setView('header');
     echo $view->__invoke();
-}
-
-function header_init($pageTitle, $lastmessage = '')
-{
-    global $pdo;
-    $header = array();
-
-    $lastmessage = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : $lastmessage);
-
-    $uid = (isset($_SESSION['uid']) ? $_SESSION['uid'] : '');
-
-    // Is the uid set?
-    if ($uid != null) {
-        $current_user_obj = new User($uid, $pdo);
-        $header['userName'] = $current_user_obj->getName();
-        $header['can_add'] = $current_user_obj->can_add;
-        $header['can_checkin'] = $current_user_obj->can_checkin;
-    }
-
-    // Are they an Admin?
-    if ($uid != null && $current_user_obj->isAdmin()) {
-        $header['isadmin'] = 'yes';
-    }
-
-    if (!isset($_REQUEST['state'])) {
-        $_REQUEST['state'] = 1;
-    }
-
-    // Set up the breadcrumbs
-    $crumb = new crumb();
-    $crumb->addCrumb(e::h($_REQUEST['state']), e::h($pageTitle), e::h($_SERVER['PHP_SELF']) . '?' . e::h($_SERVER['QUERY_STRING']));
-    $breadCrumb = $crumb->printTrail(e::h($_REQUEST['state']));
-
-    $header['breadCrumb'] = $breadCrumb;
-    $header['site_title'] = $GLOBALS['CONFIG']['title'];
-    $header['base_url'] = $GLOBALS['CONFIG']['base_url'];
-    $header['page_title'] = $pageTitle;
-    $header['lastmessage'] = urldecode($lastmessage);
-
-    return $header;
 }
 
 function draw_error($message)
@@ -457,18 +419,18 @@ function list_files($fileid_array, $userperms_obj, $dataDir, $showCheckBox = fal
         'file_list_arr' => $file_list_arr
     ];
 
-    $GLOBALS['smarty']->assign('limit_reached', $limit_reached);
-    $GLOBALS['smarty']->assign('showCheckBox', $showCheckBox);
+    //$GLOBALS['smarty']->assign('limit_reached', $limit_reached);
+    //$GLOBALS['smarty']->assign('showCheckBox', $showCheckBox);
     //print_r($file_list_arr);exit;
-    $GLOBALS['smarty']->assign('file_list_arr', $file_list_arr);
+    //$GLOBALS['smarty']->assign('file_list_arr', $file_list_arr);
     //print_r($GLOBALS['smarty']);
 
     // Call the plugin API
-    callPluginMethod('onBeforeListFiles', $file_list_arr);
+    //callPluginMethod('onBeforeListFiles', $file_list_arr);
 
-    display_smarty_template('out.tpl');
+    //display_smarty_template('out.tpl');
 
-    callPluginMethod('onAfterListFiles');
+    //callPluginMethod('onAfterListFiles');
 }
 
 function sort_browser()

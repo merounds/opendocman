@@ -23,15 +23,18 @@ use Aura\Html\Escaper as e;
  */
 
 include_once('odm-load.php');
+$view_registry->prependPath(
+    __DIR__ . '/templates/' . $GLOBALS['CONFIG']['theme']
+);
 
 if (isset($GLOBALS['CONFIG']['allow_password_reset']) && $GLOBALS['CONFIG']['allow_password_reset'] != 'True') {
     echo msg('message_sorry_not_allowed');
     exit;
 }
 
-if (!isset($_REQUEST['last_message'])) {
-    $_REQUEST['last_message']='';
-}
+$last_message = (isset($_REQUEST['last_message']) ? $_REQUEST['last_message'] : '');
+
+view_header(msg('forgotpassword'), $last_message);
 
 if (
     isset($_POST['password'])
@@ -108,63 +111,42 @@ if (
     } else {
         $userInfo = $stmt->fetch();
         $user_id = $userInfo['id'];
-        // build the header and navigation
-        /*
 
-
-
-
-
-           ADD FORMATTING HERE
-
-
-
-
-         */
-        if (strlen($_REQUEST['last_message'])) {
-            draw_error($_REQUEST['last_message']);
+        if (strlen($last_message)) {
+            draw_error($last_message);
         }
-        ?>
+?>
 
-            <p><?php echo msg('message_set_your_new_password')?></p>
+        <p><?= e::h(msg('message_set_your_new_password')) ?></p>
+        <form action="forgot_password.php" method="post">
+        <input type="hidden" name="action" value="forgot">
+        <input type="hidden" name="user_id" value="<?= e::h($user_id); ?>">
+        <input type="hidden" name="username" value="<?= e::h($username); ?>">
+        <input type="hidden" name="code" value="<?= e::h($code); ?>">
+        <table border="0">
+            <tbody>
+                <tr>
+                    <td><label for="uu"><?= e::h(msg('label_new_password')) ?>: </label></td>
+                    <td><input id="uu" class="required" type="password" name="password" maxlength="32" /></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><!-- buttons --></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="adduser" value="Reset Password"><?= e::h(msg('area_reset_password')) ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        </form>
 
-            <form action="forgot_password.php" method="post">
-            <input type="hidden" name="action" value="forgot">
-            <input type="hidden" name="user_id" value="<?php echo e::h($user_id);
-        ?>">
-            <input type="hidden" name="username" value="<?php echo e::h($username);
-        ?>">
-            <input type="hidden" name="code" value="<?php echo e::h($code);
-        ?>">
-            <table>
-            <tr>
-            <th><?php echo msg('label_new_password')?>:</th>
-            <td><input type="password" name="password" size="12" maxlength="50"></td>
-            </tr>
-            <tr>
-            <td>&nbsp;</td>
-            <td><input type="submit" value="Reset Password"></td>
-            </tr>
-            </table>
-            </form>
-
-            <?php
-            // build the footer
-            /*
-
-
-
-
-
-               ADD FORMATTING HERE
-
-
-
-
-             */
+<?php
     }
 } elseif (isset($_POST['username']) && strlen($_POST['username']) > 0) {
-    // they have sent an username
+    // they have sent an username (default form submitted)
     $username = trim($_POST['username']);
 
     // find them in the database
@@ -225,7 +207,7 @@ if (
         $mail_body .= $resetLink . PHP_EOL . PHP_EOL;
         $mail_body .= msg('email_thank_you') . PHP_EOL . PHP_EOL;
         $mail_body .= msg('area_admin') . PHP_EOL . PHP_EOL;
-        
+
         // send the email
         if ($GLOBALS['CONFIG']['demo'] == 'False') {
             mail($email, msg('area_reset_password'), $mail_body, $mail_headers);
@@ -234,32 +216,40 @@ if (
         $redirect = 'forgot_password.php?last_message=' . urlencode(msg('message_an_email_has_been_sent'));
         header("Location: $redirect");
         exit;
+
+        // just show the message instead of reloading this page again
+        echo '<div id="last_message">' . e::h(msg('message_an_email_has_been_sent')) . '</div>';
     }
-}
+} else {
+    //if (strlen($last_message)) {
+    //    draw_error($last_message);
+    //}
+    // default form
+?>
 
-// default form
-else {
-    if (strlen($_REQUEST['last_message'])) {
-        draw_error($_REQUEST['last_message']);
-    }
-    ?>
-
-        <p><?php echo msg('message_this_site_has_high_security')?></p>
-
-
+        <p><?= e::h(msg('message_this_site_has_high_security')) ?></p>
         <form action="forgot_password.php" method="post">
         <table border="0">
-        <tr>
-        <th><?php echo msg('username')?>    :</th>
-        <td><input type="text" name="username" size="25" maxlength="25"></td>
-        </tr>
-        <tr>
-        <td>&nbsp;</td>
-        <td><input type="submit" value="Reset Password"></td>
-        </tr>
+            <tbody>
+                <tr>
+                    <td><label for="uu"><?= e::h(msg('username')) ?>: </label></td>
+                    <td><input id="uu" class="required" type="text" name="username" minlength="2" maxlength="25" /></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><!-- buttons --></td>
+                    <td>
+                        <div class="buttons">
+                            <button class="positive" type="Submit" name="adduser" value="Reset Password"><?= e::h(msg('area_reset_password')) ?></button>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
         </form>
 
-        <?php
-
+<?php
 }
+
+view_footer();

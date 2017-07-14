@@ -78,20 +78,19 @@ class crumb
         for ($i=1; $i != $cur_level+1; $i++) {
             if (isset($_SESSION['crumbs'][$i])) {
                 if ($i != $cur_level) {
-                    $trail .= "<a class=\"statusbar\" href=\"". $_SESSION['crumbs'][$i]['url'] . '">';
+                    $trail .= '<a class="statusbar" href="' . $_SESSION['crumbs'][$i]['url'] . '">';
                     $trail .= $_SESSION['crumbs'][$i]['title'];
-                    $trail .= "</a>";
+                    $trail .= '</a>';
                 } else {
                     $trail .= '<span class="statusbar">' . $_SESSION['crumbs'][$i]['title'] . '</span>';
-                    $trail .= "</span>";
                 }
                 if ($i != $cur_level) {
-                    $trail .= "<FONT class=\"statusbar\">&nbsp;&gt;&nbsp;</FONT>";
+                    $trail .= '<span class="statusbar">&nbsp;&gt;&nbsp;</span>';
                 }
             }
         }
         $trail .= "</span>";
-        
+
         return $trail;
     } // end printTrail()
 } //end class crumb
@@ -100,13 +99,13 @@ class crumb
 
 //Page1
 // $crumb = new crumb();
-// $crumb->addCrumb(1, "Review", $_SERVER['REQUEST_URI']);	
+// $crumb->addCrumb(1, "Review", $_SERVER['REQUEST_URI']);
 // $crumb->printTrail(1);
 
 //Page2
 // $crumb = new crumb();
 // $crumb->addCrumb(2, "Review", $_SERVER['REQUEST_URI']);
-// $crumb->printTrail(2);	
+// $crumb->printTrail(2);
 
 //Page3 - Is the results from a POST form.
 // $crumb = new crumb();

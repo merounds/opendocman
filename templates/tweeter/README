@@ -3,7 +3,7 @@ This is a template folder. You can copy the templates/default folder into your o
 The common to all template files are in templates/common. Any that are found in your template directory with the same name will over-ride
 the default files. 
 
-When creating your own header.tpl file make sure to copy the line that is commented in the templates/default/header.tpl file.
+When creating your own header.php file make sure to copy the line that is commented in the templates/default/header.php file.
 
 Make sure you also change your OpenDocMan settings and set your new theme from the list. If you don't see it in the list, you may have put it
 in the wrong place.

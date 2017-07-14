@@ -34,7 +34,7 @@
                     <td><!-- buttons --></td>
                     <td>
                         <div class="buttons">
-                            <button class="regular" type="Submit" name="" value="Back"><?= e::h(msg('userpage_back')) ?></button>
+                            <button class="regular" type="Submit" name="" value="Back"><?= e::h(msg('button_back')) ?></button>
                         </div>
                     </td>
                 </tr>

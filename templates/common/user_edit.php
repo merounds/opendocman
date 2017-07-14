@@ -81,7 +81,7 @@
                     <td>
                         <div class="buttons">
                             <button class="positive" type="Submit" name="submit" value="Update User"><?= e::h(msg('userpage_button_update')) ?></button>
-                            <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('userpage_button_cancel')) ?></button>
+                            <button class="negative cancel" type="Submit" name="cancel" value="Cancel"><?= e::h(msg('button_cancel')) ?></button>
                         </div>
                     </td>
                 </tr>
